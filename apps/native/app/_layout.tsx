@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 
+import { ErrorBoundary } from "@/components/error-boundary";
 import { AppThemeProvider } from "@/contexts/app-theme-context";
 import {
   startNetworkListener,
@@ -47,7 +48,9 @@ export default function Layout() {
       <KeyboardProvider>
         <AppThemeProvider>
           <HeroUINativeProvider>
-            <StackLayout />
+            <ErrorBoundary>
+              <StackLayout />
+            </ErrorBoundary>
           </HeroUINativeProvider>
         </AppThemeProvider>
       </KeyboardProvider>
