@@ -1,16 +1,10 @@
-import { Card } from "heroui-native";
 import { Text, View } from "react-native";
 
-import { Container } from "@/components/container";
-
-export default function Home() {
+export default function SearchScreen() {
   return (
-    <Container className="p-6">
-      <View className="flex-1 justify-center items-center">
-        <Card variant="secondary" className="p-8 items-center">
-          <Card.Title className="text-3xl mb-2">Tab One</Card.Title>
-        </Card>
-      </View>
-    </Container>
+    <View className="flex-1 items-center justify-center p-6">
+      <Text className="text-xl font-semibold text-foreground">Search</Text>
+      <Text className="text-muted text-sm mt-2">Find radio stations by name or genre.</Text>
+    </View>
   );
 }
