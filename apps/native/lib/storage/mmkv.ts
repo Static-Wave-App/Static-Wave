@@ -1,9 +1,9 @@
-import { MMKV } from "react-native-mmkv";
+import { createMMKV } from "react-native-mmkv";
 
 import type { OnboardingData, SleepTimerState } from "@static-wave/types";
 import { STORAGE_KEYS } from "@static-wave/types";
 
-const mmkv = new MMKV({ id: "static-wave" });
+const mmkv = createMMKV({ id: "static-wave" });
 
 export function getOnboarding(): OnboardingData {
   const raw = mmkv.getString(STORAGE_KEYS.ONBOARDING);

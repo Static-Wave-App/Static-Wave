@@ -24,6 +24,7 @@
     "react-native-mmkv": "^4.3.2",
     "zustand": "^5.0.14",
     "expo": "~57.0.8",
+    "expo-av": "~16.0.8",
     "expo-constants": "~57.0.7",
     "expo-font": "~57.0.1",
     "expo-haptics": "~57.0.1",

@@ -13,12 +13,15 @@ export async function searchStations(
   query: string,
   options: SearchOptions = {},
 ): Promise<Station[]> {
-  const result = await api.searchStations(query, {
-    limit: options.limit ?? 30,
-    offset: options.offset ?? 0,
-    ...(options.tag ? { tag: options.tag } : {}),
-    ...(options.country ? { country: options.country } : {}),
-  });
+  const result = await api.searchStations(
+    {
+      name: query,
+      tag: options.tag,
+      country: options.country,
+      limit: options.limit ?? 30,
+      offset: options.offset ?? 0,
+    },
+  );
   return result as unknown as Station[];
 }
 
@@ -26,7 +29,7 @@ export async function getStationsByTag(
   tag: string,
   options: SearchOptions = {},
 ): Promise<Station[]> {
-  const result = await api.getStationsByTag(tag, {
+  const result = await api.getStationsBy("byTag", tag, {
     limit: options.limit ?? 30,
     offset: options.offset ?? 0,
   });
@@ -37,7 +40,7 @@ export async function getStationsByCountry(
   country: string,
   options: SearchOptions = {},
 ): Promise<Station[]> {
-  const result = await api.getStationsByCountry(country, {
+  const result = await api.getStationsBy("byCountry", country, {
     limit: options.limit ?? 30,
     offset: options.offset ?? 0,
   });

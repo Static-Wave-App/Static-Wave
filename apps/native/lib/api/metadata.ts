@@ -1,29 +1,25 @@
+import type { Query } from "radio-browser-api";
+
 import { api } from "./client";
 
-type Tag = { name: string; stationcount: string };
-type Country = { name: string; stationcount: string };
+type TagResult = { name: string; stationcount: number };
+type CountryResult = { name: string; stationcount: number };
 
-let cachedTags: Tag[] | null = null;
-let cachedCountries: Country[] | null = null;
+let cachedTags: TagResult[] | null = null;
+let cachedCountries: CountryResult[] | null = null;
 
-export async function getTags(): Promise<Tag[]> {
+export async function getTags(): Promise<TagResult[]> {
   if (cachedTags) return cachedTags;
-  const tags = (await api.getTags({
-    hidebroken: true,
-    order: "stationcount",
-    reverse: true,
-  })) as unknown as Tag[];
+  const query: Query = { order: "stationcount", reverse: true, hideBroken: true };
+  const tags = (await api.getTags(undefined, query)) as unknown as TagResult[];
   cachedTags = tags;
   return tags;
 }
 
-export async function getCountries(): Promise<Country[]> {
+export async function getCountries(): Promise<CountryResult[]> {
   if (cachedCountries) return cachedCountries;
-  const countries = (await api.getCountries({
-    hidebroken: true,
-    order: "stationcount",
-    reverse: true,
-  })) as unknown as Country[];
+  const query: Query = { order: "stationcount", reverse: true, hideBroken: true };
+  const countries = (await api.getCountries(undefined, query)) as unknown as CountryResult[];
   cachedCountries = countries;
   return countries;
 }
