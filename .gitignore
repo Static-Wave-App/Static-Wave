@@ -54,3 +54,8 @@ coverage
 .cache
 tmp
 temp
+
+# Design / planning
+/plans
+/systems
+/flows
