@@ -3,6 +3,7 @@
     "scheme": "static-wave",
     "userInterfaceStyle": "automatic",
     "orientation": "default",
+    "icon": "./assets/images/icon.png",
     "web": {
       "bundler": "metro"
     },
@@ -12,6 +13,15 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "expo-splash-screen": {
+      "backgroundColor": "#FFFFFF",
+      "image": "./assets/images/splash-icon.png",
+      "dark": {
+        "image": "./assets/images/splash-icon-dark.png",
+        "backgroundColor": "#000000"
+      },
+      "imageWidth": 230
     }
   }
 }
