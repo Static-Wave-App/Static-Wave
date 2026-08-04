@@ -2,6 +2,7 @@ import { create } from "zustand";
 
 import type { FavoriteStation, Station } from "@static-wave/types";
 
+import { api } from "@/lib/api";
 import {
   addFavorite as addFavoriteStorage,
   getFavorites,
@@ -34,6 +35,8 @@ export const useFavorites = create<FavoritesState & FavoritesActions>((set, get)
     await addFavoriteStorage(station);
     const favorites = await getFavorites();
     set({ favorites });
+
+    api.voteForStation(station.stationuuid).catch(() => {});
   },
 
   remove: async (uuid: string) => {
