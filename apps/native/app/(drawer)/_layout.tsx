@@ -1,11 +1,23 @@
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { Drawer } from "expo-router/drawer";
+import { useRouter } from "expo-router";
 import { useThemeColor } from "heroui-native";
+import { useEffect } from "react";
 import { Text } from "react-native";
 
+import { getOnboarding } from "@/lib/storage/mmkv";
+
 function DrawerLayout() {
+  const router = useRouter();
   const themeColorForeground = useThemeColor("foreground");
   const themeColorBackground = useThemeColor("background");
+
+  useEffect(() => {
+    const data = getOnboarding();
+    if (!data.complete) {
+      router.replace("/(onboarding)/welcome");
+    }
+  }, [router]);
 
   return (
     <Drawer
