@@ -4,12 +4,17 @@
     "userInterfaceStyle": "automatic",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
+    "ios": {
+      "infoPlist": {
+        "UIBackgroundModes": ["audio"]
+      }
+    },
     "web": {
       "bundler": "metro"
     },
     "name": "static-wave",
     "slug": "static-wave",
-    "plugins": ["expo-font"],
+    "plugins": ["expo-font", "expo-av"],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
