@@ -4,17 +4,26 @@
     "userInterfaceStyle": "automatic",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
+    "version": "0.1.0",
     "ios": {
+      "bundleIdentifier": "com.codewithkin.staticwave",
       "infoPlist": {
         "UIBackgroundModes": ["audio"]
+      }
+    },
+    "android": {
+      "package": "com.codewithkin.staticwave",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#FFFFFF"
       }
     },
     "web": {
       "bundler": "metro"
     },
-    "name": "static-wave",
+    "name": "static wave",
     "slug": "static-wave",
-    "plugins": ["expo-font", "expo-av"],
+    "plugins": ["expo-font"],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
