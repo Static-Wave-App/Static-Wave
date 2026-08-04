@@ -1,10 +1,14 @@
-import { Audio } from "expo-av";
 import { create } from "zustand";
+import TrackPlayer, {
+  AppKilledPlaybackBehavior,
+  Capability,
+  Event,
+  State,
+} from "react-native-track-player";
 
 import type { Station } from "@static-wave/types";
 
 import { api } from "@/lib/api";
-import { addToRecentlyPlayed } from "@/lib/storage";
 
 type AudioPlayerState = {
   currentStation: Station | null;
@@ -12,10 +16,11 @@ type AudioPlayerState = {
   isLoading: boolean;
   error: string | null;
   isOffline: boolean;
-  soundObject: Audio.Sound | null;
+  isReady: boolean;
 };
 
 type AudioPlayerActions = {
+  setup: () => Promise<void>;
   play: (station: Station) => Promise<void>;
   pause: () => Promise<void>;
   resume: () => Promise<void>;
@@ -23,106 +28,118 @@ type AudioPlayerActions = {
   togglePlayback: () => Promise<void>;
 };
 
-type AudioPlayerStore = AudioPlayerState & AudioPlayerActions;
+export const useAudioPlayer = create<AudioPlayerState & AudioPlayerActions>(
+  (set, get) => ({
+    currentStation: null,
+    isPlaying: false,
+    isLoading: false,
+    error: null,
+    isOffline: false,
+    isReady: false,
 
-let playStartTime: number | null = null;
+    setup: async () => {
+      try {
+        await TrackPlayer.setupPlayer({
+          autoHandleInterruptions: true,
+        });
 
-export const useAudioPlayer = create<AudioPlayerStore>((set, get) => ({
-  currentStation: null,
-  isPlaying: false,
-  isLoading: false,
-  error: null,
-  isOffline: false,
-  soundObject: null,
+        await TrackPlayer.updateOptions({
+          android: {
+            appKilledPlaybackBehavior: AppKilledPlaybackBehavior.PausePlayback,
+          },
+          capabilities: [
+            Capability.Play,
+            Capability.Pause,
+            Capability.Stop,
+          ],
+          compactCapabilities: [
+            Capability.Play,
+            Capability.Pause,
+          ],
+        });
 
-  play: async (station: Station) => {
-    const { soundObject: oldSound } = get();
-    if (oldSound) {
-      await oldSound.unloadAsync();
-    }
+        TrackPlayer.addEventListener(Event.PlaybackActiveTrackChanged, () => {
+          set({ isPlaying: true, isLoading: false });
+        });
 
-    set({ isLoading: true, error: null, isOffline: false, currentStation: station });
+        TrackPlayer.addEventListener(Event.PlaybackError, () => {
+          set({ isPlaying: false, isLoading: false, error: "Playback error" });
+        });
 
-    try {
-      await Audio.setAudioModeAsync({
-        playsInSilentModeIOS: true,
-        staysActiveInBackground: true,
-        shouldDuckAndroid: true,
-      });
+        const playbackState = await TrackPlayer.getPlaybackState();
+        set({
+          isReady: true,
+          isPlaying: playbackState.state === State.Playing,
+        });
+      } catch {
+        set({ isReady: true, error: "Failed to setup audio player" });
+      }
+    },
 
-      const { sound } = await Audio.Sound.createAsync(
-        { uri: station.url },
-        { shouldPlay: true },
-      );
+    play: async (station: Station) => {
+      set({ isLoading: true, error: null, isOffline: false, currentStation: station });
 
-      playStartTime = Date.now();
+      try {
+        await TrackPlayer.reset();
 
-      sound.setOnPlaybackStatusUpdate((status) => {
-        if (status.isLoaded && !status.isPlaying && status.didJustFinish) {
-          set({ isPlaying: false });
-        }
-      });
+        await TrackPlayer.add({
+          id: station.stationuuid,
+          url: station.url,
+          title: station.name,
+          artist: "static wave",
+          artwork: station.favicon || undefined,
+          isLiveStream: true,
+        });
 
-      set({ soundObject: sound, isPlaying: true, isLoading: false });
+        await TrackPlayer.play();
 
-      api.sendStationClick(station.stationuuid).catch(() => {});
-    } catch (e) {
-      const message = e instanceof Error ? e.message : String(e);
-      const isOffline = message.includes("Network") || message.includes("network") || message.includes("timeout");
+        set({ isPlaying: true, isLoading: false });
+
+        api.sendStationClick(station.stationuuid).catch(() => {});
+      } catch (e) {
+        const message = e instanceof Error ? e.message : String(e);
+        const isOffline =
+          message.includes("Network") ||
+          message.includes("network") ||
+          message.includes("timeout");
+        set({
+          isLoading: false,
+          error: isOffline ? "No internet connection" : "Failed to play station",
+          isOffline,
+          isPlaying: false,
+        });
+      }
+    },
+
+    pause: async () => {
+      await TrackPlayer.pause();
+      set({ isPlaying: false });
+    },
+
+    resume: async () => {
+      await TrackPlayer.play();
+      set({ isPlaying: true });
+    },
+
+    stop: async () => {
+      await TrackPlayer.stop();
+      await TrackPlayer.reset();
       set({
-        isLoading: false,
-        error: isOffline ? "No internet connection" : "Failed to play station",
-        isOffline,
+        currentStation: null,
         isPlaying: false,
+        isLoading: false,
+        error: null,
+        isOffline: false,
       });
-    }
-  },
+    },
 
-  pause: async () => {
-    const { soundObject } = get();
-    if (!soundObject) return;
-    await soundObject.pauseAsync();
-    set({ isPlaying: false });
-  },
-
-  resume: async () => {
-    const { soundObject } = get();
-    if (!soundObject) return;
-    await soundObject.playAsync();
-    set({ isPlaying: true });
-  },
-
-  stop: async () => {
-    const { soundObject } = get();
-    if (soundObject) {
-      await soundObject.stopAsync();
-      await soundObject.unloadAsync();
-    }
-    playStartTime = null;
-    set({
-      currentStation: null,
-      isPlaying: false,
-      isLoading: false,
-      error: null,
-      isOffline: false,
-      soundObject: null,
-    });
-  },
-
-  togglePlayback: async () => {
-    const { isPlaying } = get();
-    if (isPlaying) {
-      await get().pause();
-    } else {
-      await get().resume();
-    }
-  },
-}));
-
-const RECENTLY_PLAYED_THRESHOLD_MS = 5000;
-
-export function checkAndRecordPlayback(station: Station): void {
-  if (playStartTime && Date.now() - playStartTime >= RECENTLY_PLAYED_THRESHOLD_MS) {
-    addToRecentlyPlayed(station);
-  }
-}
+    togglePlayback: async () => {
+      const { isPlaying } = get();
+      if (isPlaying) {
+        await get().pause();
+      } else {
+        await get().resume();
+      }
+    },
+  }),
+);
