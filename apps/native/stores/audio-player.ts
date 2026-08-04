@@ -3,6 +3,7 @@ import { create } from "zustand";
 
 import type { Station } from "@static-wave/types";
 
+import { api } from "@/lib/api";
 import { addToRecentlyPlayed } from "@/lib/storage";
 
 type AudioPlayerState = {
@@ -10,6 +11,7 @@ type AudioPlayerState = {
   isPlaying: boolean;
   isLoading: boolean;
   error: string | null;
+  isOffline: boolean;
   soundObject: Audio.Sound | null;
 };
 
@@ -30,6 +32,7 @@ export const useAudioPlayer = create<AudioPlayerStore>((set, get) => ({
   isPlaying: false,
   isLoading: false,
   error: null,
+  isOffline: false,
   soundObject: null,
 
   play: async (station: Station) => {
@@ -38,7 +41,7 @@ export const useAudioPlayer = create<AudioPlayerStore>((set, get) => ({
       await oldSound.unloadAsync();
     }
 
-    set({ isLoading: true, error: null, currentStation: station });
+    set({ isLoading: true, error: null, isOffline: false, currentStation: station });
 
     try {
       await Audio.setAudioModeAsync({
@@ -61,8 +64,17 @@ export const useAudioPlayer = create<AudioPlayerStore>((set, get) => ({
       });
 
       set({ soundObject: sound, isPlaying: true, isLoading: false });
+
+      api.sendStationClick(station.stationuuid).catch(() => {});
     } catch (e) {
-      set({ isLoading: false, error: "Failed to play station", isPlaying: false });
+      const message = e instanceof Error ? e.message : String(e);
+      const isOffline = message.includes("Network") || message.includes("network") || message.includes("timeout");
+      set({
+        isLoading: false,
+        error: isOffline ? "No internet connection" : "Failed to play station",
+        isOffline,
+        isPlaying: false,
+      });
     }
   },
 
@@ -92,6 +104,7 @@ export const useAudioPlayer = create<AudioPlayerStore>((set, get) => ({
       isPlaying: false,
       isLoading: false,
       error: null,
+      isOffline: false,
       soundObject: null,
     });
   },
