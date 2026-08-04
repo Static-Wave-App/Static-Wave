@@ -14,6 +14,9 @@ function StackLayout() {
   return (
     <Stack screenOptions={{}}>
       <Stack.Screen name="(drawer)" options={{ headerShown: false }} />
+      <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
+      <Stack.Screen name="station/[uuid]" options={{ title: "Station" }} />
+      <Stack.Screen name="player" options={{ title: "Now Playing", presentation: "modal" }} />
     </Stack>
   );
 }
