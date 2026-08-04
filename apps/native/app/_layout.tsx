@@ -1,10 +1,19 @@
 import "@/global.css";
 import { Stack } from "expo-router";
 import { HeroUINativeProvider } from "heroui-native";
+import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 
 import { AppThemeProvider } from "@/contexts/app-theme-context";
+import {
+  startNetworkListener,
+  useAudioPlayer,
+  useFavorites,
+  useNetwork,
+  useRecentlyPlayed,
+  useSleepTimer,
+} from "@/stores";
 
 export const unstable_settings = {
   initialRouteName: "(drawer)",
@@ -22,6 +31,17 @@ function StackLayout() {
 }
 
 export default function Layout() {
+  useEffect(() => {
+    useAudioPlayer.getState().setup();
+    useFavorites.getState().hydrate();
+    useRecentlyPlayed.getState().hydrate();
+    useSleepTimer.getState().hydrate();
+    useNetwork.getState().check();
+
+    const unsubscribe = startNetworkListener();
+    return unsubscribe;
+  }, []);
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <KeyboardProvider>
