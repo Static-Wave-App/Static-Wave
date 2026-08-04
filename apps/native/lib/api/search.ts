@@ -1,6 +1,6 @@
 import type { Station } from "@static-wave/types";
 
-import { api } from "./client";
+import { api, mapApiStations } from "./client";
 
 type SearchOptions = {
   limit?: number;
@@ -13,16 +13,14 @@ export async function searchStations(
   query: string,
   options: SearchOptions = {},
 ): Promise<Station[]> {
-  const result = await api.searchStations(
-    {
-      name: query,
-      tag: options.tag,
-      country: options.country,
-      limit: options.limit ?? 30,
-      offset: options.offset ?? 0,
-    },
-  );
-  return result as unknown as Station[];
+  const result = await api.searchStations({
+    name: query,
+    tag: options.tag,
+    country: options.country,
+    limit: options.limit ?? 30,
+    offset: options.offset ?? 0,
+  });
+  return mapApiStations(result);
 }
 
 export async function getStationsByTag(
@@ -33,7 +31,7 @@ export async function getStationsByTag(
     limit: options.limit ?? 30,
     offset: options.offset ?? 0,
   });
-  return result as unknown as Station[];
+  return mapApiStations(result);
 }
 
 export async function getStationsByCountry(
@@ -44,5 +42,5 @@ export async function getStationsByCountry(
     limit: options.limit ?? 30,
     offset: options.offset ?? 0,
   });
-  return result as unknown as Station[];
+  return mapApiStations(result);
 }
