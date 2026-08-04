@@ -1,30 +1,27 @@
-"use client";
+import type { Metadata } from "next";
+import Link from "next/link";
 
-const TITLE_TEXT = `
- ██████╗ ███████╗████████╗████████╗███████╗██████╗
- ██╔══██╗██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗
- ██████╔╝█████╗     ██║      ██║   █████╗  ██████╔╝
- ██╔══██╗██╔══╝     ██║      ██║   ██╔══╝  ██╔══██╗
- ██████╔╝███████╗   ██║      ██║   ███████╗██║  ██║
- ╚═════╝ ╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝
-
- ████████╗    ███████╗████████╗ █████╗  ██████╗██╗  ██╗
- ╚══██╔══╝    ██╔════╝╚══██╔══╝██╔══██╗██╔════╝██║ ██╔╝
-    ██║       ███████╗   ██║   ███████║██║     █████╔╝
-    ██║       ╚════██║   ██║   ██╔══██║██║     ██╔═██╗
-    ██║       ███████║   ██║   ██║  ██║╚██████╗██║  ██╗
-    ╚═╝       ╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝
- `;
+export const metadata: Metadata = {
+  title: "static wave — radio, everywhere",
+  description: "Listen to any radio station in the world.",
+};
 
 export default function Home() {
   return (
-    <div className="container mx-auto max-w-3xl px-4 py-2">
-      <pre className="overflow-x-auto font-mono text-sm">{TITLE_TEXT}</pre>
-      <div className="grid gap-6">
-        <section className="rounded-lg border p-4">
-          <h2 className="mb-2 font-medium">API Status</h2>
-        </section>
+    <main className="container mx-auto max-w-3xl flex flex-1 flex-col items-center justify-center px-4 py-16 text-center">
+      <h1 className="text-4xl font-bold tracking-tight mb-4">static wave</h1>
+      <p className="text-lg text-muted-foreground mb-8">radio, everywhere.</p>
+      <p className="text-muted-foreground max-w-md mb-8">
+        Listen to any radio station in the world, right from your phone.
+      </p>
+      <div className="flex gap-4">
+        <Link href="/privacy" className="text-sm underline underline-offset-4">
+          Privacy Policy
+        </Link>
+        <Link href="/tos" className="text-sm underline underline-offset-4">
+          Terms of Service
+        </Link>
       </div>
-    </div>
+    </main>
   );
 }
