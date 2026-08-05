@@ -20,15 +20,16 @@ import {
   TuneIcon,
 } from "@/components/ui/icons";
 import { Screen } from "@/components/ui/screen";
-import { RowAction, StationRow } from "@/components/ui/station-row";
+import { ScreenBackButton } from "@/components/ui/screen-back-button";
+import { StationRow } from "@/components/ui/station-row";
 import { Eyebrow, Text } from "@/components/ui/text";
 import { useAppColors } from "@/components/ui/theme";
 import { useCatalogueSize, useStationSearch } from "@/hooks";
 import type { SearchSort } from "@/lib/api";
 import { SEARCH_SORTS } from "@/lib/api";
 import { getFontFamily } from "@/lib/fonts";
-import { PlayIcon } from "@/components/ui/icons";
-import { useAudioPlayer, useFavorites, useOnboarding, useRecentlyPlayed } from "@/stores";
+import { PlayPauseButton } from "@/components/ui/play-pause-button";
+import { useFavorites, useOnboarding, useRecentlyPlayed } from "@/stores";
 import type { Station } from "@static-wave/types";
 
 /**
@@ -175,7 +176,6 @@ export default function SearchScreen() {
 
   const onboardingGenres = useOnboarding((s) => s.selectedGenres);
   const recentlyPlayed = useRecentlyPlayed((s) => s.recentlyPlayed);
-  const play = useAudioPlayer((s) => s.play);
 
   const catalogue = useCatalogueSize();
 
@@ -205,7 +205,9 @@ export default function SearchScreen() {
 
   return (
     <Screen glow={GLOW.search}>
-      <View style={{ paddingHorizontal: 24, paddingTop: 30 }}>
+      <ScreenBackButton />
+
+      <View style={{ paddingHorizontal: 24, paddingTop: 12 }}>
         <Text
           variant="display-xl"
           style={{ fontSize: 31, lineHeight: 34, color: colors.text }}
@@ -457,15 +459,7 @@ export default function SearchScreen() {
                   station={station}
                   size="md"
                   onPress={() => router.push(`/station/${station.stationuuid}`)}
-                  trailing={
-                    <RowAction
-                      size={36}
-                      accessibilityLabel={`Play ${station.name}`}
-                      onPress={() => play(station)}
-                    >
-                      <PlayIcon size={14} color={colors.muted} />
-                    </RowAction>
-                  }
+                  trailing={<PlayPauseButton station={station} size={36} iconSize={14} />}
                 />
               ))}
             </View>
