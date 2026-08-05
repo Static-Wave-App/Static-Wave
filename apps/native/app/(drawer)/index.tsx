@@ -13,16 +13,12 @@ import { NowPlayingBar } from "@/components/ui/now-playing-bar";
 import { PlayPauseButton } from "@/components/ui/play-pause-button";
 import { RadialOverlay } from "@/components/ui/radial-overlay";
 import { Screen } from "@/components/ui/screen";
+import { StationArtwork } from "@/components/ui/station-artwork";
 import { Eyebrow, Text } from "@/components/ui/text";
 import { useAppColors } from "@/components/ui/theme";
 import { Wordmark } from "@/components/ui/wordmark";
 import { useStationPlayback, useSuggestedStations } from "@/hooks";
-import {
-  formatStationSubtitle,
-  getGreeting,
-  getStationAvatar,
-  getStationInitials,
-} from "@/lib/format";
+import { formatStationSubtitle, getGreeting, getStationAvatar } from "@/lib/format";
 import { useRecentlyPlayed, useSleepTimer } from "@/stores";
 import type { RecentStation, Station } from "@static-wave/types";
 
@@ -287,8 +283,7 @@ function CarouselDots({ count, active }: { count: number; active: number }) {
 /** Card width 132, tile 132×132 radius 24, play button 34 at right 10 / bottom 10. */
 function RecentCard({ station }: { station: RecentStation }) {
   const router = useRouter();
-
-  const avatar = getStationAvatar(station);
+  const { colors } = useAppColors();
 
   return (
     <Pressable
@@ -297,24 +292,15 @@ function RecentCard({ station }: { station: RecentStation }) {
       accessibilityLabel={station.name}
       style={{ width: 132 }}
     >
-      <View style={{ width: 132, height: 132, borderRadius: 24, overflow: "hidden" }}>
-        <LinearGradient
-          colors={avatar.colors as unknown as [string, string]}
-          // The tiles rake at `140deg` in the design — steeper than the 135deg
-          // used on avatars.
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0.75, y: 1 }}
-          style={{ width: "100%", height: "100%" }}
-        >
-          {avatar.uri ? (
-            <Image
-              source={{ uri: avatar.uri }}
-              contentFit="cover"
-              transition={150}
-              style={{ width: "100%", height: "100%" }}
-            />
-          ) : null}
-        </LinearGradient>
+      <View style={{ width: 132, height: 132 }}>
+        <StationArtwork
+          station={station}
+          size={132}
+          radius={24}
+          palette="station"
+          initialsSize={30}
+          padding={14}
+        />
 
         <View style={{ position: "absolute", right: 10, bottom: 10 }}>
           <PlayPauseButton station={station} size={34} iconSize={12} surface="glass" />
@@ -352,8 +338,6 @@ function SuggestedRow({ station, isLast }: { station: Station; isLast: boolean }
   const router = useRouter();
   const { colors } = useAppColors();
 
-  const avatar = getStationAvatar(station);
-
   return (
     <>
       <Pressable
@@ -368,32 +352,15 @@ function SuggestedRow({ station, isLast }: { station: Station; isLast: boolean }
           opacity: pressed ? 0.7 : 1,
         })}
       >
-        <View style={{ width: 46, height: 46, borderRadius: 15, overflow: "hidden" }}>
-          <LinearGradient
-            colors={avatar.colors as unknown as [string, string]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={{
-              width: "100%",
-              height: "100%",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            {avatar.uri ? (
-              <Image
-                source={{ uri: avatar.uri }}
-                contentFit="cover"
-                transition={150}
-                style={{ width: "100%", height: "100%" }}
-              />
-            ) : (
-              <Text weight="600" style={{ fontSize: 15, color: "rgba(255,255,255,0.94)" }}>
-                {getStationInitials(station.name)}
-              </Text>
-            )}
-          </LinearGradient>
-        </View>
+        <StationArtwork
+          station={station}
+          size={46}
+          radius={15}
+          palette="station"
+          initialsSize={15}
+          align="center"
+          padding={0}
+        />
 
         <View style={{ flex: 1, minWidth: 0 }}>
           <Text
