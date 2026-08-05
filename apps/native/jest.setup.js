@@ -41,6 +41,22 @@ jest.mock("expo-asset", () => ({
 jest.mock("expo-notifications", () => ({
   scheduleNotificationAsync: jest.fn().mockResolvedValue("notification-id"),
   cancelScheduledNotificationAsync: jest.fn().mockResolvedValue(undefined),
+  // The sleep timer service creates an Android channel and installs a
+  // foreground handler at import time; both must exist or the module throws
+  // before any test runs.
+  setNotificationChannelAsync: jest.fn().mockResolvedValue(null),
+  setNotificationHandler: jest.fn(),
+  requestPermissionsAsync: jest.fn().mockResolvedValue({ status: "granted" }),
+  AndroidImportance: { DEFAULT: 5, HIGH: 6, LOW: 4, MAX: 7, MIN: 3, NONE: 2 },
+  SchedulableTriggerInputTypes: {
+    TIME_INTERVAL: "timeInterval",
+    DATE: "date",
+    DAILY: "daily",
+    WEEKLY: "weekly",
+    MONTHLY: "monthly",
+    YEARLY: "yearly",
+    CALENDAR: "calendar",
+  },
 }));
 
 jest.mock("expo-haptics", () => ({
