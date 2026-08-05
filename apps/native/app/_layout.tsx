@@ -7,6 +7,9 @@ import { KeyboardProvider } from "react-native-keyboard-controller";
 
 import { ErrorBoundary } from "@/components/error-boundary";
 import { AppThemeProvider } from "@/contexts/app-theme-context";
+import { startNetworkPlaybackService } from "@/lib/services/network-playback-service";
+import { startRecentlyPlayedTracker } from "@/lib/services/recently-played-tracker";
+import { startSleepTimerService } from "@/lib/services/sleep-timer-service";
 import {
   startNetworkListener,
   useAudioPlayer,
@@ -39,8 +42,18 @@ export default function Layout() {
     useSleepTimer.getState().hydrate();
     useNetwork.getState().check();
 
-    const unsubscribe = startNetworkListener();
-    return unsubscribe;
+    // Service-layer bridges: these coordinate between stores without the
+    // stores importing each other (see systems/state-management.md).
+    const teardown = [
+      startNetworkListener(),
+      startNetworkPlaybackService(),
+      startRecentlyPlayedTracker(),
+      startSleepTimerService(),
+    ];
+
+    return () => {
+      for (const stop of teardown) stop();
+    };
   }, []);
 
   return (

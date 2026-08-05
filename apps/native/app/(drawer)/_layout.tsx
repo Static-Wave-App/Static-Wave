@@ -1,23 +1,22 @@
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { Drawer } from "expo-router/drawer";
-import { useRouter } from "expo-router";
+import { Redirect } from "expo-router";
 import { useThemeColor } from "heroui-native";
-import { useEffect } from "react";
 import { Text } from "react-native";
 
-import { getOnboarding } from "@/lib/storage/mmkv";
+import { useOnboarding } from "@/stores";
 
 function DrawerLayout() {
-  const router = useRouter();
+  const onboardingComplete = useOnboarding((s) => s.complete);
   const themeColorForeground = useThemeColor("foreground");
   const themeColorBackground = useThemeColor("background");
 
-  useEffect(() => {
-    const data = getOnboarding();
-    if (!data.complete) {
-      router.replace("/(onboarding)/welcome");
-    }
-  }, [router]);
+  // Declarative guard: renders the redirect *instead of* the drawer, so there's
+  // no frame where the main app is visible to a first-time user. Reading from
+  // the store (not storage) means calling `finish()` releases this immediately.
+  if (!onboardingComplete) {
+    return <Redirect href="/(onboarding)/welcome" />;
+  }
 
   return (
     <Drawer

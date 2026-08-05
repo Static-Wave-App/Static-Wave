@@ -1,26 +1,31 @@
-import { Stack } from "expo-router";
-import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { Redirect, Stack } from "expo-router";
 
-import { getOnboarding } from "@/lib/storage/mmkv";
+import { useOnboarding } from "@/stores";
+
+export const unstable_settings = {
+  initialRouteName: "welcome",
+};
 
 export default function OnboardingLayout() {
-  const router = useRouter();
-  const [isChecking, setIsChecking] = useState(true);
+  const onboardingComplete = useOnboarding((s) => s.complete);
 
-  useEffect(() => {
-    const data = getOnboarding();
-    if (data.complete) {
-      router.replace("/(drawer)/(tabs)");
-    }
-    setIsChecking(false);
-  }, [router]);
+  // Mirror of the guard in (drawer)/_layout.tsx. Both are driven by the same
+  // boolean and are mutually exclusive, so they can't bounce off each other.
+  if (onboardingComplete) {
+    return <Redirect href="/(drawer)/(tabs)" />;
+  }
 
-  if (isChecking) return null;
-
+  // Screens are file-registered by Expo Router, so new ones work as soon as the
+  // file exists. Intended order (plans/onboarding.md):
+  // welcome → genre-select → country-select → aha-moment →
+  // notification-permission → background-permission
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="welcome" />
-    </Stack>
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        animation: "slide_from_right",
+        gestureEnabled: false,
+      }}
+    />
   );
 }
