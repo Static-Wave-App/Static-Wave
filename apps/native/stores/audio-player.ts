@@ -8,7 +8,40 @@ import TrackPlayer, {
 
 import type { Station } from "@static-wave/types";
 
-import { api } from "@/lib/api";
+import { api, getStreamUrl } from "@/lib/api";
+
+const NETWORK_ERROR_PATTERN =
+  /network|timeout|timed out|connection|unreachable|enotfound|econnrefused|offline/i;
+
+type PlaybackFailure = {
+  error: string;
+  isOffline: boolean;
+};
+
+/**
+ * Normalizes anything track-player can throw or emit — an Error from `play()`,
+ * a string, or a PlaybackError event payload — into a user-facing message plus
+ * an `isOffline` flag so screens can distinguish a dead stream from a dead
+ * connection. See systems/error-handling.md.
+ */
+export function classifyPlaybackError(reason: unknown): PlaybackFailure {
+  let message = "";
+
+  if (reason instanceof Error) {
+    message = reason.message;
+  } else if (typeof reason === "string") {
+    message = reason;
+  } else if (reason && typeof reason === "object" && "message" in reason) {
+    message = String((reason as { message: unknown }).message);
+  }
+
+  const isOffline = NETWORK_ERROR_PATTERN.test(message);
+
+  return {
+    error: isOffline ? "No internet connection" : "Failed to play station",
+    isOffline,
+  };
+}
 
 type AudioPlayerState = {
   currentStation: Station | null;
@@ -62,8 +95,12 @@ export const useAudioPlayer = create<AudioPlayerState & AudioPlayerActions>(
           set({ isPlaying: true, isLoading: false });
         });
 
-        TrackPlayer.addEventListener(Event.PlaybackError, () => {
-          set({ isPlaying: false, isLoading: false, error: "Playback error" });
+        TrackPlayer.addEventListener(Event.PlaybackError, (event) => {
+          set({
+            isPlaying: false,
+            isLoading: false,
+            ...classifyPlaybackError(event),
+          });
         });
 
         const playbackState = await TrackPlayer.getPlaybackState();
@@ -84,7 +121,7 @@ export const useAudioPlayer = create<AudioPlayerState & AudioPlayerActions>(
 
         await TrackPlayer.add({
           id: station.stationuuid,
-          url: station.url,
+          url: getStreamUrl(station),
           title: station.name,
           artist: "static wave",
           artwork: station.favicon || undefined,
@@ -97,16 +134,10 @@ export const useAudioPlayer = create<AudioPlayerState & AudioPlayerActions>(
 
         api.sendStationClick(station.stationuuid).catch(() => {});
       } catch (e) {
-        const message = e instanceof Error ? e.message : String(e);
-        const isOffline =
-          message.includes("Network") ||
-          message.includes("network") ||
-          message.includes("timeout");
         set({
           isLoading: false,
-          error: isOffline ? "No internet connection" : "Failed to play station",
-          isOffline,
           isPlaying: false,
+          ...classifyPlaybackError(e),
         });
       }
     },
