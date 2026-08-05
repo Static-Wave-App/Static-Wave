@@ -1,13 +1,11 @@
-import { LinearGradient } from "expo-linear-gradient";
-import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { Pressable, View } from "react-native";
 
-import { getStationAvatar } from "@/lib/format";
 import { useAudioPlayer } from "@/stores";
 
 import { Equaliser } from "./equaliser";
 import { PauseIcon, PlayIcon } from "./icons";
+import { StationArtwork } from "./station-artwork";
 import { Text } from "./text";
 import { useAppColors } from "./theme";
 
@@ -70,7 +68,6 @@ export function NowPlayingBar({ variant = "dashboard" }: { variant?: Variant }) 
   // rather than empty. Screens reserve the space via their scroll padding.
   if (!station) return null;
 
-  const avatar = getStationAvatar(station);
   const subtitle = [station.state?.trim(), station.country?.trim()]
     .filter(Boolean)
     .join(", ");
@@ -97,30 +94,18 @@ export function NowPlayingBar({ variant = "dashboard" }: { variant?: Variant }) 
         opacity: pressed ? 0.9 : 1,
       })}
     >
-      <View
-        style={{
-          width: v.avatar,
-          height: v.avatar,
-          borderRadius: v.avatarRadius,
-          overflow: "hidden",
-        }}
-      >
-        <LinearGradient
-          colors={avatar.colors as unknown as [string, string]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={{ width: "100%", height: "100%" }}
-        >
-          {avatar.uri ? (
-            <Image
-              source={{ uri: avatar.uri }}
-              contentFit="cover"
-              transition={150}
-              style={{ width: "100%", height: "100%" }}
-            />
-          ) : null}
-        </LinearGradient>
-      </View>
+      {/* Falls back to initials rather than a bare gradient — an unlabelled
+          colour block gave the bar no way to identify the station when the
+          favicon was missing. */}
+      <StationArtwork
+        station={station}
+        size={v.avatar}
+        radius={v.avatarRadius}
+        palette="station"
+        initialsSize={v.avatar * 0.34}
+        align="center"
+        padding={0}
+      />
 
       <View style={{ flex: 1, minWidth: 0 }}>
         <Text

@@ -27,7 +27,15 @@ export type StationArtworkProps = {
   station: { stationuuid: string; name: string; favicon: string } | null;
   size: number;
   radius: number;
-  /** Gradient shown behind/instead of the image. Defaults to the brand ramp. */
+  /**
+   * Gradient shown behind/instead of the image.
+   *
+   * `brand` is the full four-stop ramp — the hero tiles (Player, onboarding)
+   * use it. `station` uses the station's own stable two-colour pair, which is
+   * what the smaller tiles in the design do so a list isn't one flat colour.
+   */
+  palette?: "brand" | "station";
+  /** Explicit override, e.g. Station Details' near-black tile. */
   colors?: readonly string[];
   locations?: readonly number[];
   initialsSize: number;
@@ -45,8 +53,9 @@ export function StationArtwork({
   station,
   size,
   radius,
-  colors = BRAND,
-  locations = BRAND_LOCATIONS,
+  palette = "brand",
+  colors,
+  locations,
   initialsSize,
   align = "bottom-left",
   padding = 26,
@@ -57,6 +66,12 @@ export function StationArtwork({
 
   const avatar = station ? getStationAvatar(station) : null;
   const showImage = Boolean(avatar?.uri) && !failed;
+
+  const stops =
+    colors ??
+    (palette === "station" && avatar ? avatar.colors : BRAND);
+  // Two-stop station palettes have no explicit locations; the brand ramp does.
+  const stopLocations = locations ?? (stops === BRAND ? BRAND_LOCATIONS : undefined);
 
   return (
     <View
@@ -71,8 +86,8 @@ export function StationArtwork({
       accessibilityLabel={station?.name ?? "Station artwork"}
     >
       <LinearGradient
-        colors={colors as unknown as [string, string, ...string[]]}
-        locations={locations as unknown as [number, number, ...number[]]}
+        colors={stops as unknown as [string, string, ...string[]]}
+        locations={stopLocations as unknown as [number, number, ...number[]]}
         start={{ x: 0.15, y: 0 }}
         end={{ x: 0.85, y: 1 }}
         style={{

@@ -9,14 +9,11 @@ import { GLOW } from "@/components/ui/glow";
 import { PlayPauseButton } from "@/components/ui/play-pause-button";
 import { Screen } from "@/components/ui/screen";
 import { ScreenBackButton } from "@/components/ui/screen-back-button";
+import { StationArtwork } from "@/components/ui/station-artwork";
 import { RowAction, StationRow } from "@/components/ui/station-row";
 import { Eyebrow, Text } from "@/components/ui/text";
 import { useAppColors } from "@/components/ui/theme";
-import {
-  formatCollectionSummary,
-  formatStationSubtitle,
-  getStationInitials,
-} from "@/lib/format";
+import { formatCollectionSummary, formatStationSubtitle } from "@/lib/format";
 import { useAudioPlayer, useFavorites } from "@/stores";
 import type { FavoriteStation } from "@static-wave/types";
 
@@ -54,22 +51,18 @@ function OnAirCard({ station }: { station: FavoriteStation }) {
           gap: 14,
         }}
       >
-        <LinearGradient
-          colors={["#FF2FD6", "#8B3DFF"]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={{
-            width: 64,
-            height: 64,
-            borderRadius: 20,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Text weight="600" style={{ fontSize: 20, color: "rgba(255,255,255,0.94)" }}>
-            {getStationInitials(station.name)}
-          </Text>
-        </LinearGradient>
+        {/* 64×64 radius 20. The design draws a gradient square with initials —
+            that's the placeholder for station artwork, so the real favicon goes
+            here when the station has one. */}
+        <StationArtwork
+          station={station}
+          size={64}
+          radius={20}
+          palette="station"
+          initialsSize={20}
+          align="center"
+          padding={0}
+        />
 
         <View style={{ flex: 1, minWidth: 0 }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 7 }}>
@@ -138,7 +131,6 @@ export default function FavoritesScreen() {
   const favorites = useFavorites((s) => s.favorites);
   const hydrated = useFavorites((s) => s.hydrated);
   const remove = useFavorites((s) => s.remove);
-  const play = useAudioPlayer((s) => s.play);
   const currentUuid = useAudioPlayer((s) => s.currentStation?.stationuuid);
 
   const [isEditing, setIsEditing] = useState(false);

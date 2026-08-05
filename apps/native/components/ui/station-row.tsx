@@ -1,16 +1,11 @@
 import type { Station } from "@static-wave/types";
-import { LinearGradient } from "expo-linear-gradient";
-import { Image } from "expo-image";
 import type { ReactNode } from "react";
 import { Pressable, View } from "react-native";
 
-import {
-  formatBitrateBadge,
-  formatStationSubtitle,
-  getStationAvatar,
-} from "@/lib/format";
+import { formatBitrateBadge, formatStationSubtitle } from "@/lib/format";
 import { useAudioPlayer } from "@/stores";
 
+import { StationArtwork } from "./station-artwork";
 import { Eyebrow, Text } from "./text";
 import { useAppColors } from "./theme";
 
@@ -52,7 +47,6 @@ export function StationRow({
   const { colors } = useAppColors();
   const s = SIZES[size];
 
-  const avatar = getStationAvatar(station);
   const subtitle = formatStationSubtitle(station);
   const bitrate = formatBitrateBadge(station.bitrate);
 
@@ -80,45 +74,18 @@ export function StationRow({
         opacity: pressed ? 0.85 : 1,
       })}
     >
-      <View
-        style={{
-          width: s.avatar,
-          height: s.avatar,
-          borderRadius: s.avatarRadius,
-          overflow: "hidden",
-        }}
-      >
-        <LinearGradient
-          colors={avatar.colors as unknown as [string, string]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={{
-            width: "100%",
-            height: "100%",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          {avatar.uri ? (
-            <Image
-              source={{ uri: avatar.uri }}
-              contentFit="cover"
-              transition={150}
-              style={{ width: "100%", height: "100%" }}
-            />
-          ) : (
-            <Text
-              weight="600"
-              style={{
-                fontSize: s.initials,
-                color: "rgba(255,255,255,0.94)",
-              }}
-            >
-              {avatar.initials}
-            </Text>
-          )}
-        </LinearGradient>
-      </View>
+      {/* The design's gradient square with initials is the artwork placeholder;
+          `StationArtwork` shows the favicon when there is one and falls back to
+          it otherwise, including when the URL 404s. */}
+      <StationArtwork
+        station={station}
+        size={s.avatar}
+        radius={s.avatarRadius}
+        palette="station"
+        initialsSize={s.initials}
+        align="center"
+        padding={0}
+      />
 
       <View style={{ flex: 1, minWidth: 0 }}>
         <Text
