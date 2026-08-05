@@ -1,5 +1,8 @@
 import "@/global.css";
+import { heroUITheme } from "@static-wave/design";
+import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
 import { HeroUINativeProvider } from "heroui-native";
 import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -7,6 +10,7 @@ import { KeyboardProvider } from "react-native-keyboard-controller";
 
 import { ErrorBoundary } from "@/components/error-boundary";
 import { AppThemeProvider } from "@/contexts/app-theme-context";
+import { appFonts } from "@/lib/fonts";
 import { startNetworkPlaybackService } from "@/lib/services/network-playback-service";
 import { startRecentlyPlayedTracker } from "@/lib/services/recently-played-tracker";
 import { startSleepTimerService } from "@/lib/services/sleep-timer-service";
@@ -23,6 +27,10 @@ export const unstable_settings = {
   initialRouteName: "(drawer)",
 };
 
+// Hold the splash until fonts resolve, so the first frame isn't rendered in the
+// system font and then reflowed.
+SplashScreen.preventAutoHideAsync().catch(() => {});
+
 function StackLayout() {
   return (
     <Stack screenOptions={{}}>
@@ -35,6 +43,16 @@ function StackLayout() {
 }
 
 export default function Layout() {
+  const [fontsLoaded, fontError] = useFonts(appFonts);
+
+  useEffect(() => {
+    // Release the splash once fonts settle. On a font error we still continue —
+    // falling back to the system font is far better than a stuck splash.
+    if (fontsLoaded || fontError) {
+      SplashScreen.hideAsync().catch(() => {});
+    }
+  }, [fontsLoaded, fontError]);
+
   useEffect(() => {
     useAudioPlayer.getState().setup();
     useFavorites.getState().hydrate();
@@ -56,11 +74,15 @@ export default function Layout() {
     };
   }, []);
 
+  // Splash is still up at this point, so rendering nothing avoids a flash of
+  // system-font text behind it.
+  if (!fontsLoaded && !fontError) return null;
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <KeyboardProvider>
         <AppThemeProvider>
-          <HeroUINativeProvider>
+          <HeroUINativeProvider config={{ theme: heroUITheme }}>
             <ErrorBoundary>
               <StackLayout />
             </ErrorBoundary>
