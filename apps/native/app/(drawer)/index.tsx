@@ -4,25 +4,26 @@ import { useNavigation, useRouter } from "expo-router";
 import type { ReactNode } from "react";
 import { useMemo, useRef, useState } from "react";
 import type { NativeScrollEvent, NativeSyntheticEvent } from "react-native";
-import { Pressable, ScrollView, View } from "react-native";
+import { ActivityIndicator, Pressable, RefreshControl, ScrollView, View } from "react-native";
 
 import { AsyncBoundary, SectionHeader, Skeleton } from "@/components/ui/async-boundary";
 import { GLOW } from "@/components/ui/glow";
-import { MenuIcon, MoonIcon, PlayIcon } from "@/components/ui/icons";
+import { MenuIcon, MoonIcon, PauseIcon, PlayIcon } from "@/components/ui/icons";
 import { NowPlayingBar } from "@/components/ui/now-playing-bar";
+import { PlayPauseButton } from "@/components/ui/play-pause-button";
 import { RadialOverlay } from "@/components/ui/radial-overlay";
 import { Screen } from "@/components/ui/screen";
 import { Eyebrow, Text } from "@/components/ui/text";
 import { useAppColors } from "@/components/ui/theme";
 import { Wordmark } from "@/components/ui/wordmark";
-import { useSuggestedStations } from "@/hooks";
+import { useStationPlayback, useSuggestedStations } from "@/hooks";
 import {
   formatStationSubtitle,
   getGreeting,
   getStationAvatar,
   getStationInitials,
 } from "@/lib/format";
-import { useAudioPlayer, useRecentlyPlayed, useSleepTimer } from "@/stores";
+import { useRecentlyPlayed, useSleepTimer } from "@/stores";
 import type { RecentStation, Station } from "@static-wave/types";
 
 /**
@@ -35,6 +36,8 @@ import type { RecentStation, Station } from "@static-wave/types";
 
 const SCREEN_GUTTER = 24;
 const FEATURED_COUNT = 3;
+/** Space between carousel cards. Must be folded into the snap interval below. */
+const FEATURED_GAP = 14;
 
 /* ------------------------------------------------------------------ */
 /* Header                                                              */
@@ -100,7 +103,11 @@ function HeaderButton({
 function FeaturedCard({ station, width }: { station: Station; width: number }) {
   const router = useRouter();
   const { colors } = useAppColors();
-  const play = useAudioPlayer((s) => s.play);
+  const { isPlaying, isLoading, toggle } = useStationPlayback(station);
+
+  const avatar = getStationAvatar(station);
+  const [artFailed, setArtFailed] = useState(false);
+  const showArt = Boolean(avatar.uri) && !artFailed;
 
   const subtitle = formatStationSubtitle(station);
   const bitrate = station.bitrate > 0 ? `${station.bitrate} kbps` : null;
@@ -119,15 +126,38 @@ function FeaturedCard({ station, width }: { station: Station; width: number }) {
         end={{ x: 1, y: 1 }}
         style={{ height: 194, borderRadius: 30, overflow: "hidden" }}
       >
+        {/* The design has no artwork here, only the gradient. Showing the
+            station's own art is more useful, so it goes UNDER a scrim rather
+            than replacing the gradient — the pill and the glass bar both sit on
+            top and have to stay legible over an arbitrary image. */}
+        {showArt && avatar.uri ? (
+          <>
+            <Image
+              source={{ uri: avatar.uri }}
+              contentFit="cover"
+              transition={200}
+              onError={() => setArtFailed(true)}
+              style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
+            />
+            <LinearGradient
+              colors={["rgba(10,10,12,0.15)", "rgba(10,10,12,0.55)"]}
+              pointerEvents="none"
+              style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
+            />
+          </>
+        ) : null}
+
         {/* radial-gradient(70% 90% at 85% 10%, rgba(34,211,238,0.55)) */}
-        <RadialOverlay
-          color="#22D3EE"
-          opacity={0.55}
-          cx={0.85}
-          cy={0.1}
-          rx={0.7}
-          ry={0.9}
-        />
+        {showArt ? null : (
+          <RadialOverlay
+            color="#22D3EE"
+            opacity={0.55}
+            cx={0.85}
+            cy={0.1}
+            rx={0.7}
+            ry={0.9}
+          />
+        )}
 
         <View
           style={{
@@ -189,9 +219,12 @@ function FeaturedCard({ station, width }: { station: Station; width: number }) {
           </View>
 
           <Pressable
-            onPress={() => play(station)}
+            onPress={toggle}
             accessibilityRole="button"
-            accessibilityLabel={`Play ${station.name}`}
+            accessibilityState={{ selected: isPlaying }}
+            accessibilityLabel={
+              isPlaying ? `Pause ${station.name}` : `Play ${station.name}`
+            }
             hitSlop={8}
             style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
           >
@@ -207,7 +240,13 @@ function FeaturedCard({ station, width }: { station: Station; width: number }) {
                 justifyContent: "center",
               }}
             >
-              <PlayIcon size={16} />
+              {isLoading ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : isPlaying ? (
+                <PauseIcon size={16} />
+              ) : (
+                <PlayIcon size={16} />
+              )}
             </LinearGradient>
           </Pressable>
         </View>
@@ -248,8 +287,6 @@ function CarouselDots({ count, active }: { count: number; active: number }) {
 /** Card width 132, tile 132×132 radius 24, play button 34 at right 10 / bottom 10. */
 function RecentCard({ station }: { station: RecentStation }) {
   const router = useRouter();
-  const { colors } = useAppColors();
-  const play = useAudioPlayer((s) => s.play);
 
   const avatar = getStationAvatar(station);
 
@@ -279,26 +316,9 @@ function RecentCard({ station }: { station: RecentStation }) {
           ) : null}
         </LinearGradient>
 
-        <Pressable
-          onPress={() => play(station)}
-          accessibilityRole="button"
-          accessibilityLabel={`Play ${station.name}`}
-          hitSlop={8}
-          style={({ pressed }) => ({
-            position: "absolute",
-            right: 10,
-            bottom: 10,
-            width: 34,
-            height: 34,
-            borderRadius: 17,
-            backgroundColor: colors.glass,
-            alignItems: "center",
-            justifyContent: "center",
-            opacity: pressed ? 0.75 : 1,
-          })}
-        >
-          <PlayIcon size={12} color={colors.text} />
-        </Pressable>
+        <View style={{ position: "absolute", right: 10, bottom: 10 }}>
+          <PlayPauseButton station={station} size={34} iconSize={12} surface="glass" />
+        </View>
       </View>
 
       <Text
@@ -331,7 +351,6 @@ function RecentCard({ station }: { station: RecentStation }) {
 function SuggestedRow({ station, isLast }: { station: Station; isLast: boolean }) {
   const router = useRouter();
   const { colors } = useAppColors();
-  const play = useAudioPlayer((s) => s.play);
 
   const avatar = getStationAvatar(station);
 
@@ -393,23 +412,7 @@ function SuggestedRow({ station, isLast }: { station: Station; isLast: boolean }
           </Text>
         </View>
 
-        <Pressable
-          onPress={() => play(station)}
-          accessibilityRole="button"
-          accessibilityLabel={`Play ${station.name}`}
-          hitSlop={8}
-          style={({ pressed }) => ({
-            width: 34,
-            height: 34,
-            borderRadius: 17,
-            backgroundColor: colors.chipBg,
-            alignItems: "center",
-            justifyContent: "center",
-            opacity: pressed ? 0.7 : 1,
-          })}
-        >
-          <PlayIcon size={12} color={colors.muted} />
-        </Pressable>
+        <PlayPauseButton station={station} size={34} iconSize={12} />
       </Pressable>
 
       {isLast ? null : <View style={{ height: 1, backgroundColor: colors.hairline }} />}
@@ -450,7 +453,9 @@ export default function DashboardScreen() {
 
   const onFeaturedScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     if (cardWidth === 0) return;
-    const next = Math.round(e.nativeEvent.contentOffset.x / cardWidth);
+    const next = Math.round(
+      e.nativeEvent.contentOffset.x / (cardWidth + FEATURED_GAP),
+    );
     if (next !== featuredIndex) setFeaturedIndex(next);
   };
 
@@ -491,6 +496,17 @@ export default function DashboardScreen() {
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingBottom: 120 }}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          // Suggestions are fetched once on mount and station availability
+          // moves, so a pull is the only way to get a fresh set without
+          // restarting the app.
+          <RefreshControl
+            refreshing={suggestions.isLoading}
+            onRefresh={suggestions.refresh}
+            tintColor={colors.muted}
+            colors={["#8B3DFF"]}
+          />
+        }
       >
         <View style={{ paddingHorizontal: 24, paddingTop: 26 }}>
           <Text
@@ -527,11 +543,11 @@ export default function DashboardScreen() {
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 onMomentumScrollEnd={onFeaturedScroll}
-                contentContainerStyle={{ paddingHorizontal: 24 }}
-                // Snap by the card width, not the screen width — `pagingEnabled`
-                // would page by the full viewport and drift by the 24px gutter
-                // on every swipe.
-                snapToInterval={cardWidth}
+                contentContainerStyle={{ paddingHorizontal: 24, gap: FEATURED_GAP }}
+                // Snap by card + gap, not the screen width — `pagingEnabled`
+                // would page by the full viewport and drift by the gutter on
+                // every swipe, and omitting the gap here drifts by 14px.
+                snapToInterval={cardWidth + FEATURED_GAP}
                 decelerationRate="fast"
               >
                 {featured.map((station) => (
@@ -574,6 +590,8 @@ export default function DashboardScreen() {
 
         <SectionHeader
           title="Suggested for you"
+          actionLabel="See all"
+          onAction={() => router.push("/suggested")}
           style={{ paddingHorizontal: 24, paddingTop: 24 }}
         />
 
