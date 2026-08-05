@@ -23,6 +23,14 @@ export type AppColors = {
   hairline: string;
   chipBg: string;
   chipBorder: string;
+  /**
+   * Fill for the floating bars — tab bar, Now Playing bar, FEATURED glass bar.
+   * The design pairs it with `backdrop-filter: blur(20–24px)`, which React
+   * Native has no equivalent for without expo-blur. These alpha values are the
+   * design's own, and read correctly over the screen background on their own.
+   */
+  glass: string;
+  glassBorder: string;
   dotInactive: string;
   homeIndicator: string;
   /** Bars inside the logo mark — inverted between themes. */
@@ -47,6 +55,8 @@ export const DARK_COLORS: AppColors = {
   hairline: "rgba(255,255,255,0.08)",
   chipBg: "rgba(255,255,255,0.06)",
   chipBorder: "rgba(255,255,255,0.08)",
+  glass: "rgba(12,12,16,0.78)",
+  glassBorder: "rgba(255,255,255,0.10)",
   dotInactive: "rgba(255,255,255,0.14)",
   homeIndicator: "#62626C",
   markBar: "rgba(10,10,12,0.82)",
@@ -67,6 +77,8 @@ export const LIGHT_COLORS: AppColors = {
   hairline: "rgba(0,0,0,0.08)",
   chipBg: "rgba(0,0,0,0.04)",
   chipBorder: "rgba(0,0,0,0.08)",
+  glass: "rgba(255,255,255,0.82)",
+  glassBorder: "rgba(0,0,0,0.10)",
   dotInactive: "rgba(0,0,0,0.10)",
   homeIndicator: "#A0A0AA",
   markBar: "rgba(255,255,255,0.92)",
