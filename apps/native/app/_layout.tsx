@@ -12,6 +12,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { AppThemeProvider } from "@/contexts/app-theme-context";
 import { appFonts } from "@/lib/fonts";
+import { releaseAllPlayers } from "@/stores/audio-player";
 import { startNetworkPlaybackService } from "@/lib/services/network-playback-service";
 import { startRecentlyPlayedTracker } from "@/lib/services/recently-played-tracker";
 import { startSleepTimerService } from "@/lib/services/sleep-timer-service";
@@ -72,6 +73,9 @@ export default function Layout() {
 
     return () => {
       for (const stop of teardown) stop();
+      // Release native audio players. Without this a Fast Refresh or JS reload
+      // strands them and they keep playing with nothing left to control them.
+      releaseAllPlayers();
     };
   }, []);
 
