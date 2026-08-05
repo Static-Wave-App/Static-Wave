@@ -33,6 +33,17 @@ export const GLOW = {
   notifications: { color: "#8B3DFF", opacity: 0.22, cx: 0.5, cy: 0.22, rx: 1.1, ry: 0.45 },
   /** 110% 45% at 50% 22%, rgba(34,211,238,0.20) */
   backgroundAudio: { color: "#22D3EE", opacity: 0.2, cx: 0.5, cy: 0.22, rx: 1.1, ry: 0.45 },
+
+  // --- Content screens (StaticWave Screens.html) ---
+  /** 120% 55% at 50% 0%, rgba(139,61,255,0.20) — light row uses 0.13 */
+  dashboard: { color: "#8B3DFF", opacity: 0.2, cx: 0.5, cy: 0, rx: 1.2, ry: 0.55 },
+  /** 120% 55% at 15% 0%, rgba(34,211,238,0.14) */
+  search: { color: "#22D3EE", opacity: 0.14, cx: 0.15, cy: 0, rx: 1.2, ry: 0.55 },
+  /** 120% 55% at 85% 0%, rgba(255,47,214,0.16) */
+  favorites: { color: "#FF2FD6", opacity: 0.16, cx: 0.85, cy: 0, rx: 1.2, ry: 0.55 },
+  /** 90% 45% at 50% 32%, rgba(139,61,255,0.20) */
+  player: { color: "#8B3DFF", opacity: 0.2, cx: 0.5, cy: 0.32, rx: 0.9, ry: 0.45 },
+  // Station Details has NO glow — it uses a 330px gradient hero instead.
 } as const satisfies Record<string, Glow>;
 
 export type GlowName = keyof typeof GLOW;
