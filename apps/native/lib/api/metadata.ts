@@ -8,6 +8,7 @@ const METADATA_QUERY: Query = { order: "stationcount", reverse: true };
 
 let cachedTags: TagResult[] | null = null;
 let cachedCountries: CountryResult[] | null = null;
+let cachedLanguages: CountryResult[] | null = null;
 
 export async function getTags(): Promise<TagResult[]> {
   if (cachedTags) return cachedTags;
@@ -23,9 +24,21 @@ export async function getCountries(): Promise<CountryResult[]> {
   return countries;
 }
 
+/**
+ * Backs the Search screen's "Language" filter chip. Same shape as countries —
+ * `{ name, stationcount }` — so both feed the same picker.
+ */
+export async function getLanguages(): Promise<CountryResult[]> {
+  if (cachedLanguages) return cachedLanguages;
+  const languages = await withRetry(() => api.getLanguages(undefined, METADATA_QUERY));
+  cachedLanguages = languages;
+  return languages;
+}
+
 export function clearMetadataCache(): void {
   cachedTags = null;
   cachedCountries = null;
+  cachedLanguages = null;
 }
 
 /**
@@ -35,8 +48,13 @@ export function clearMetadataCache(): void {
 export async function refreshMetadata(): Promise<{
   tags: TagResult[];
   countries: CountryResult[];
+  languages: CountryResult[];
 }> {
   clearMetadataCache();
-  const [tags, countries] = await Promise.all([getTags(), getCountries()]);
-  return { tags, countries };
+  const [tags, countries, languages] = await Promise.all([
+    getTags(),
+    getCountries(),
+    getLanguages(),
+  ]);
+  return { tags, countries, languages };
 }

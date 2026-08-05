@@ -1,6 +1,19 @@
 export { api, getStreamUrl, mapApiStation, mapApiStations } from "./client";
-export { searchStations, getStationsByTag, getStationsByCountry } from "./search";
-export { getTags, getCountries, clearMetadataCache, refreshMetadata } from "./metadata";
+export {
+  searchStations,
+  getStationsByTag,
+  getStationsByCountry,
+  SEARCH_SORTS,
+  HD_MIN_BITRATE,
+} from "./search";
+export type { SearchSort } from "./search";
+export {
+  getTags,
+  getCountries,
+  getLanguages,
+  clearMetadataCache,
+  refreshMetadata,
+} from "./metadata";
 export { withRetry } from "./retry";
 export { getServerStats, getPlayableStationCount, clearStatsCache } from "./stats";
 export type { ServerStats } from "./stats";

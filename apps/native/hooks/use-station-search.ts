@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { Station } from "@static-wave/types";
 
+import type { SearchSort } from "@/lib/api";
 import { searchStations } from "@/lib/api";
 import { formatResultCount } from "@/lib/format/station-meta";
 
@@ -12,6 +13,10 @@ const PAGE_SIZE = 30;
 type Filters = {
   tag?: string;
   country?: string;
+  language?: string;
+  /** The "HD" chip — server-side `bitrateMin`. */
+  hdOnly?: boolean;
+  sort?: SearchSort;
 };
 
 type StationSearch = {
@@ -51,13 +56,15 @@ export function useStationSearch(query: string, filters: Filters = {}): StationS
   // Incremented per search; responses from an older sequence are discarded.
   const sequenceRef = useRef(0);
 
-  const { tag, country } = filters;
+  const { tag, country, language, hdOnly, sort } = filters;
 
   useEffect(() => {
     const sequence = ++sequenceRef.current;
     offsetRef.current = 0;
 
-    if (!debouncedQuery.trim() && !tag && !country) {
+    // An HD-only or sort change with nothing else set isn't a search — the API
+    // would return "the loudest 30 stations on earth", which isn't useful.
+    if (!debouncedQuery.trim() && !tag && !country && !language) {
       setStations([]);
       setHasMore(false);
       setError(null);
@@ -69,7 +76,15 @@ export function useStationSearch(query: string, filters: Filters = {}): StationS
     setError(null);
     inFlightRef.current = true;
 
-    searchStations(debouncedQuery, { tag, country, limit: PAGE_SIZE, offset: 0 })
+    searchStations(debouncedQuery, {
+      tag,
+      country,
+      language,
+      hdOnly,
+      sort,
+      limit: PAGE_SIZE,
+      offset: 0,
+    })
       .then((results) => {
         if (sequence !== sequenceRef.current) return;
         setStations(results);
@@ -87,7 +102,7 @@ export function useStationSearch(query: string, filters: Filters = {}): StationS
         inFlightRef.current = false;
         setIsLoading(false);
       });
-  }, [debouncedQuery, tag, country, attempt]);
+  }, [debouncedQuery, tag, country, language, hdOnly, sort, attempt]);
 
   const loadMore = useCallback(() => {
     if (inFlightRef.current || !hasMore) return;
@@ -99,6 +114,9 @@ export function useStationSearch(query: string, filters: Filters = {}): StationS
     searchStations(debouncedQuery, {
       tag,
       country,
+      language,
+      hdOnly,
+      sort,
       limit: PAGE_SIZE,
       offset: offsetRef.current,
     })
@@ -121,7 +139,7 @@ export function useStationSearch(query: string, filters: Filters = {}): StationS
         inFlightRef.current = false;
         setIsLoadingMore(false);
       });
-  }, [debouncedQuery, tag, country, hasMore]);
+  }, [debouncedQuery, tag, country, language, hdOnly, sort, hasMore]);
 
   const retry = useCallback(() => setAttempt((a) => a + 1), []);
 
