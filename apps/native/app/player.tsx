@@ -16,11 +16,12 @@ import {
   PlayIcon,
 } from "@/components/ui/icons";
 import { Screen } from "@/components/ui/screen";
+import { StationArtwork } from "@/components/ui/station-artwork";
 import { Eyebrow, Text } from "@/components/ui/text";
 import { useAppColors } from "@/components/ui/theme";
 import { SleepTimerSheet } from "@/components/player/sleep-timer-sheet";
 import type { SleepTimerSheetRef } from "@/components/player/sleep-timer-sheet";
-import { formatCountdown, getStationInitials } from "@/lib/format";
+import { formatCountdown } from "@/lib/format";
 import { shareStation } from "@/lib/share";
 import { useAudioPlayer, useFavorites, useSleepTimer } from "@/stores";
 
@@ -181,33 +182,19 @@ export default function PlayerScreen() {
       </View>
 
       {/* Artwork 298×298, radius 44, `140deg #FF2FD6, #8B3DFF 45%, #2E7BFF 74%,
-          #22D3EE`. Initials sit bottom-left with 26px padding — not centred. */}
+          #22D3EE`. Initials sit bottom-left with 26px padding — not centred.
+          Renders the station favicon when there is one; this screen used to
+          show initials only, which is why art visible in the now-playing dock
+          vanished the moment you opened the Player. */}
       <View style={{ alignItems: "center", paddingTop: 32 }}>
-        <LinearGradient
-          colors={["#FF2FD6", "#8B3DFF", "#2E7BFF", "#22D3EE"]}
-          locations={[0, 0.45, 0.74, 1]}
-          start={{ x: 0.15, y: 0 }}
-          end={{ x: 0.85, y: 1 }}
-          style={{
-            width: 298,
-            height: 298,
-            borderRadius: 44,
-            justifyContent: "flex-end",
-            padding: 26,
-          }}
-        >
-          <Text
-            weight="600"
-            style={{
-              fontSize: 60,
-              lineHeight: 54,
-              letterSpacing: -3,
-              color: "rgba(255,255,255,0.94)",
-            }}
-          >
-            {getStationInitials(station.name)}
-          </Text>
-        </LinearGradient>
+        <StationArtwork
+          station={station}
+          size={298}
+          radius={44}
+          initialsSize={60}
+          padding={26}
+          isLoading={isLoading}
+        />
       </View>
 
       <View style={{ alignItems: "center", paddingHorizontal: 32, paddingTop: 32 }}>

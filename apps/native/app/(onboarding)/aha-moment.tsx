@@ -1,7 +1,6 @@
-import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, Pressable, View } from "react-native";
+import { Pressable, View } from "react-native";
 import Svg, { Path, Polyline } from "react-native-svg";
 
 import {
@@ -12,7 +11,8 @@ import {
 } from "@/components/onboarding/chrome";
 import { Eyebrow, Text } from "@/components/ui/text";
 import { getStationsByCountry, getStationsByTag } from "@/lib/api";
-import { formatBitrate, getStationInitials, getStationTags } from "@/lib/format";
+import { StationArtwork } from "@/components/ui/station-artwork";
+import { formatBitrate, getStationTags } from "@/lib/format";
 import { useAudioPlayer, useOnboarding } from "@/stores";
 import type { Station } from "@static-wave/types";
 
@@ -118,37 +118,21 @@ export default function AhaMomentScreen() {
         </Text>
       </View>
 
-      {/* 246x246 artwork tile, radius 40, initials bottom-left at 52px */}
+      {/* 246x246 artwork tile, radius 40, initials bottom-left at 52px.
+          Shows the station's own artwork when it has one — this tile rendered
+          initials only, so the first station a user ever sees looked
+          artwork-less even when the favicon was perfectly good. */}
       <View style={{ alignItems: "center", paddingTop: 34 }}>
-        <LinearGradient
+        <StationArtwork
+          station={station}
+          size={246}
+          radius={40}
           colors={["#FF2FD6", "#8B3DFF", "#2E7BFF", "#22D3EE"]}
           locations={[0, 0.48, 0.8, 1]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0.85, y: 1 }}
-          style={{
-            width: 246,
-            height: 246,
-            borderRadius: 40,
-            justifyContent: "flex-end",
-            padding: 24,
-          }}
-        >
-          {isLoading ? (
-            <ActivityIndicator color="rgba(255,255,255,0.94)" />
-          ) : (
-            <Text
-              variant="display-2xl"
-              style={{
-                fontSize: 52,
-                lineHeight: 47,
-                letterSpacing: -2.6,
-                color: "rgba(255,255,255,0.94)",
-              }}
-            >
-              {station ? getStationInitials(station.name) : "?"}
-            </Text>
-          )}
-        </LinearGradient>
+          initialsSize={52}
+          padding={24}
+          isLoading={isLoading}
+        />
       </View>
 
       <View style={{ paddingHorizontal: 40, paddingTop: 26, alignItems: "center" }}>
