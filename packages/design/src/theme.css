@@ -1,0 +1,202 @@
+/*
+ * Tailwind v4 theme for static wave.
+ *
+ * This is the single file that makes a class name mean the same thing in the
+ * Next.js app (Tailwind v4) and the Expo app (uniwind). Import it from BOTH:
+ *
+ *   apps/native/global.css        →  @import "@static-wave/design/theme.css";
+ *   packages/ui/src/styles/globals.css → same
+ *
+ * Values mirror src/tokens/*.ts — that file is the source of truth for
+ * JS-side consumers (React Native style objects, SVG, widget code). Keep the
+ * two in sync when changing a token.
+ */
+
+@theme {
+  /* ---- Brand ------------------------------------------------------------ */
+  --color-brand: #8b3dff;
+  --color-brand-pink: #ff2fd6;
+  --color-brand-violet: #8b3dff;
+  --color-brand-blue: #2e7bff;
+  --color-brand-cyan: #22d3ee;
+  --color-brand-foreground: #ffffff;
+
+  /* ---- Neutrals (raw ramps) --------------------------------------------- */
+  --color-ink-1000: #08080a;
+  --color-ink-950: #0a0a0c;
+  --color-ink-900: #16161b;
+  --color-ink-850: #17171a;
+  --color-ink-800: #1b1b20;
+
+  --color-paper-0: #ffffff;
+  --color-paper-50: #fafafc;
+  --color-paper-100: #f5f5f7;
+  --color-paper-200: #e9e9ed;
+  --color-paper-300: #d4d4da;
+  --color-paper-400: #c6c6cc;
+
+  /* ---- Radius ------------------------------------------------------------ */
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-xl: 22px;
+  --radius-2xl: 26px;
+  --radius-3xl: 32px;
+  --radius-pill: 999px;
+
+  /* ---- Spacing ----------------------------------------------------------- */
+  --spacing-gutter: 24px;
+  --spacing-gutter-tight: 20px;
+
+  /* ---- Type -------------------------------------------------------------- */
+  --font-display: "Outfit", -apple-system, "Helvetica Neue", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  --text-display-2xl: 36px;
+  --text-display-2xl--line-height: 1.1;
+  --text-display-2xl--letter-spacing: -0.03em;
+  --text-display-2xl--font-weight: 600;
+
+  --text-display-xl: 32px;
+  --text-display-xl--line-height: 1.1;
+  --text-display-xl--letter-spacing: -0.035em;
+  --text-display-xl--font-weight: 600;
+
+  --text-display-lg: 28px;
+  --text-display-lg--line-height: 1.1;
+  --text-display-lg--letter-spacing: -0.03em;
+  --text-display-lg--font-weight: 600;
+
+  --text-display-md: 22px;
+  --text-display-md--line-height: 1.15;
+  --text-display-md--letter-spacing: -0.02em;
+  --text-display-md--font-weight: 600;
+
+  --text-display-sm: 19px;
+  --text-display-sm--line-height: 1.2;
+  --text-display-sm--letter-spacing: -0.02em;
+  --text-display-sm--font-weight: 600;
+
+  --text-display-xs: 17px;
+  --text-display-xs--line-height: 1.25;
+  --text-display-xs--letter-spacing: -0.02em;
+  --text-display-xs--font-weight: 600;
+
+  --text-body-xl: 16px;
+  --text-body-xl--line-height: 1.45;
+  --text-body-xl--letter-spacing: -0.015em;
+
+  --text-body-lg: 15px;
+  --text-body-lg--line-height: 1.45;
+  --text-body-lg--letter-spacing: -0.015em;
+
+  --text-body-md: 14px;
+  --text-body-md--line-height: 1.45;
+  --text-body-md--letter-spacing: -0.015em;
+
+  --text-body-sm: 13px;
+  --text-body-sm--line-height: 1.45;
+  --text-body-sm--letter-spacing: -0.015em;
+
+  --text-body-xs: 12px;
+  --text-body-xs--line-height: 1.45;
+  --text-body-xs--letter-spacing: -0.015em;
+
+  --text-body-2xs: 11px;
+  --text-body-2xs--line-height: 1.45;
+  --text-body-2xs--letter-spacing: -0.015em;
+
+  /* Eyebrows — always uppercase at the call site. */
+  --text-mono-sm: 12px;
+  --text-mono-sm--line-height: 1.2;
+  --text-mono-sm--letter-spacing: 0.1em;
+  --text-mono-sm--font-weight: 500;
+
+  --text-mono-xs: 11px;
+  --text-mono-xs--line-height: 1.2;
+  --text-mono-xs--letter-spacing: 0.14em;
+  --text-mono-xs--font-weight: 500;
+
+  --text-mono-2xs: 10px;
+  --text-mono-2xs--line-height: 1.2;
+  --text-mono-2xs--letter-spacing: 0.16em;
+  --text-mono-2xs--font-weight: 500;
+
+  /* ---- Motion ------------------------------------------------------------ */
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-decelerate: cubic-bezier(0, 0, 0, 1);
+  --ease-accelerate: cubic-bezier(0.3, 0, 1, 1);
+}
+
+/*
+ * Semantic layer. Components reference these, never the raw ramps above, so a
+ * theme change is one file. Both design files ship light and dark rows, so
+ * every token below resolves in both.
+ */
+@theme {
+  --color-background: var(--color-paper-50);
+  --color-background-deep: var(--color-paper-100);
+  --color-surface: var(--color-paper-0);
+  --color-surface-alt: var(--color-paper-100);
+  --color-surface-raised: var(--color-paper-0);
+  --color-border: var(--color-paper-200);
+  --color-border-strong: var(--color-paper-300);
+  --color-foreground: var(--color-ink-950);
+  --color-muted: #6c6c77;
+  --color-dim: #8a8a93;
+  --color-disabled: var(--color-paper-400);
+  --color-on-air: #0e9bb5;
+  --color-on-air-foreground: #ffffff;
+  --color-skeleton: var(--color-paper-100);
+}
+
+@layer base {
+  .dark,
+  [data-theme="dark"] {
+    --color-background: var(--color-ink-950);
+    --color-background-deep: var(--color-ink-1000);
+    --color-surface: var(--color-ink-900);
+    --color-surface-alt: var(--color-ink-850);
+    --color-surface-raised: var(--color-ink-800);
+    --color-border: #1f1f26;
+    --color-border-strong: #2a2a33;
+    --color-foreground: #fafafc;
+    --color-muted: #9c9ca8;
+    --color-dim: #6c6c77;
+    --color-disabled: #4a4a53;
+    --color-on-air: var(--color-brand-cyan);
+    --color-on-air-foreground: var(--color-ink-1000);
+    --color-skeleton: var(--color-ink-800);
+  }
+}
+
+/*
+ * The brand gradient. Not a Tailwind colour because gradients aren't colours —
+ * exposed as a utility so both apps apply it identically.
+ *
+ * NOTE: `.bg-brand-gradient` and `.text-brand-gradient` are WEB ONLY. React
+ * Native cannot render CSS gradients; on native use `expo-linear-gradient`
+ * with `brandGradientColors` / `brandGradientLocations` from the tokens module.
+ */
+@utility bg-brand-gradient {
+  background-image: linear-gradient(
+    90deg,
+    #ff2fd6 0%,
+    #8b3dff 45%,
+    #2e7bff 75%,
+    #22d3ee 100%
+  );
+}
+
+@utility text-brand-gradient {
+  background-image: linear-gradient(
+    90deg,
+    #ff2fd6 0%,
+    #8b3dff 45%,
+    #2e7bff 75%,
+    #22d3ee 100%
+  );
+  background-clip: text;
+  color: transparent;
+}
