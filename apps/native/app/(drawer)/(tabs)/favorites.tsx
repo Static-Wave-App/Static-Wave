@@ -1,10 +1,262 @@
-import { Text, View } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
+import { useState } from "react";
+import { Pressable, ScrollView, View } from "react-native";
+import Svg, { Polygon, Rect } from "react-native-svg";
+
+import { AsyncBoundary, SectionHeader, StateBlock } from "@/components/ui/async-boundary";
+import { GLOW } from "@/components/ui/glow";
+import { Screen } from "@/components/ui/screen";
+import { RowAction, StationRow } from "@/components/ui/station-row";
+import { Eyebrow, Text } from "@/components/ui/text";
+import { useAppColors } from "@/components/ui/theme";
+import {
+  formatCollectionSummary,
+  formatStationSubtitle,
+  getStationInitials,
+} from "@/lib/format";
+import { useAudioPlayer, useFavorites } from "@/stores";
+import type { FavoriteStation } from "@static-wave/types";
+
+/**
+ * Favorites — spec: systems/screen-specs.md §03.
+ * Every measurement below is from the design file, not estimated.
+ *
+ * Purely local data: `useFavorites` hydrates at launch, so there is no
+ * loading state to show.
+ */
+
+/** ON AIR card — 1px gradient border, radius 28 outer / 27 inner. */
+function OnAirCard({ station }: { station: FavoriteStation }) {
+  const { colors } = useAppColors();
+  const router = useRouter();
+  const togglePlayback = useAudioPlayer((s) => s.togglePlayback);
+  const isPlaying = useAudioPlayer((s) => s.isPlaying);
+
+  return (
+    <LinearGradient
+      colors={["#FF2FD6", "#8B3DFF", "#22D3EE"]}
+      locations={[0, 0.55, 1]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={{ marginHorizontal: 24, marginTop: 22, borderRadius: 28, padding: 1 }}
+    >
+      <Pressable
+        onPress={() => router.push(`/station/${station.stationuuid}`)}
+        style={{
+          borderRadius: 27,
+          backgroundColor: colors.surface,
+          padding: 14,
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 14,
+        }}
+      >
+        <LinearGradient
+          colors={["#FF2FD6", "#8B3DFF"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={{
+            width: 64,
+            height: 64,
+            borderRadius: 20,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Text weight="600" style={{ fontSize: 20, color: "rgba(255,255,255,0.94)" }}>
+            {getStationInitials(station.name)}
+          </Text>
+        </LinearGradient>
+
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 7 }}>
+            <View
+              style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: colors.onAir }}
+            />
+            <Eyebrow variant="mono-2xs" style={{ color: colors.onAir }}>
+              ON AIR
+            </Eyebrow>
+          </View>
+          <Text
+            variant="display-xs"
+            numberOfLines={1}
+            style={{ marginTop: 5, color: colors.text }}
+          >
+            {station.name}
+          </Text>
+          <Text
+            weight="300"
+            numberOfLines={1}
+            style={{ marginTop: 2, fontSize: 12.5, color: colors.muted }}
+          >
+            {formatStationSubtitle(station)}
+          </Text>
+        </View>
+
+        <Pressable
+          onPress={() => togglePlayback()}
+          accessibilityRole="button"
+          accessibilityLabel={isPlaying ? "Pause" : "Play"}
+          hitSlop={8}
+        >
+          <LinearGradient
+            colors={["#8B3DFF", "#2E7BFF"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{
+              width: 48,
+              height: 48,
+              borderRadius: 24,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            {isPlaying ? (
+              <Svg width={18} height={18} viewBox="0 0 24 24">
+                <Rect x={6} y={4} width={4} height={16} rx={1.5} fill="#FFFFFF" />
+                <Rect x={14} y={4} width={4} height={16} rx={1.5} fill="#FFFFFF" />
+              </Svg>
+            ) : (
+              <Svg width={18} height={18} viewBox="0 0 24 24">
+                <Polygon points="7,4 20,12 7,20" fill="#FFFFFF" />
+              </Svg>
+            )}
+          </LinearGradient>
+        </Pressable>
+      </Pressable>
+    </LinearGradient>
+  );
+}
 
 export default function FavoritesScreen() {
+  const router = useRouter();
+  const { colors } = useAppColors();
+
+  const favorites = useFavorites((s) => s.favorites);
+  const hydrated = useFavorites((s) => s.hydrated);
+  const remove = useFavorites((s) => s.remove);
+  const play = useAudioPlayer((s) => s.play);
+  const currentUuid = useAudioPlayer((s) => s.currentStation?.stationuuid);
+
+  const [isEditing, setIsEditing] = useState(false);
+
+  // The ON AIR card only appears when the playing station is a favorite.
+  const onAir = favorites.find((f) => f.stationuuid === currentUuid) ?? null;
+  const rest = onAir
+    ? favorites.filter((f) => f.stationuuid !== onAir.stationuuid)
+    : favorites;
+
   return (
-    <View className="flex-1 items-center justify-center p-6">
-      <Text className="text-xl font-semibold text-foreground">Favorites</Text>
-      <Text className="text-muted text-sm mt-2">Your saved stations will appear here.</Text>
-    </View>
+    <Screen glow={GLOW.favorites}>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "flex-end",
+          justifyContent: "space-between",
+          paddingHorizontal: 24,
+          paddingTop: 30,
+        }}
+      >
+        <View>
+          <Text variant="display-xl" style={{ fontSize: 31, color: colors.text }}>
+            Favorites
+          </Text>
+          <Text weight="300" style={{ marginTop: 5, fontSize: 13.5, color: colors.muted }}>
+            {formatCollectionSummary(favorites)}
+          </Text>
+        </View>
+
+        {favorites.length > 0 ? (
+          <Pressable
+            onPress={() => setIsEditing((v) => !v)}
+            accessibilityRole="button"
+            style={({ pressed }) => ({
+              height: 34,
+              paddingHorizontal: 15,
+              borderRadius: 17,
+              backgroundColor: colors.chipBg,
+              borderWidth: 1,
+              borderColor: colors.chipBorder,
+              alignItems: "center",
+              justifyContent: "center",
+              opacity: pressed ? 0.7 : 1,
+            })}
+          >
+            <Text weight="400" style={{ fontSize: 13.5, color: colors.text }}>
+              {isEditing ? "Done" : "Edit"}
+            </Text>
+          </Pressable>
+        ) : null}
+      </View>
+
+      <AsyncBoundary
+        isEmpty={hydrated && favorites.length === 0}
+        empty={
+          <StateBlock
+            title="No favorites yet"
+            body="Stations you save will live here."
+            action={
+              <Pressable
+                onPress={() => router.push("/(drawer)/(tabs)")}
+                accessibilityRole="button"
+                style={{ marginTop: 8 }}
+              >
+                <Text variant="body-md" style={{ color: "#8B3DFF" }}>
+                  Browse stations
+                </Text>
+              </Pressable>
+            }
+          />
+        }
+      >
+        <ScrollView
+          contentContainerStyle={{ paddingBottom: 180 }}
+          showsVerticalScrollIndicator={false}
+        >
+          {onAir ? <OnAirCard station={onAir} /> : null}
+
+          <SectionHeader
+            title="ALL SAVED"
+            eyebrow
+            actionLabel="Recently added"
+            withChevron={false}
+            style={{ paddingHorizontal: 24, paddingTop: 26 }}
+          />
+
+          <View style={{ paddingHorizontal: 24, paddingTop: 12, gap: 9 }}>
+            {rest.map((station) => (
+              <StationRow
+                key={station.stationuuid}
+                station={station}
+                size="sm"
+                onPress={() => router.push(`/station/${station.stationuuid}`)}
+                trailing={
+                  <RowAction
+                    size={36}
+                    accessibilityLabel={
+                      isEditing ? `Remove ${station.name}` : `Play ${station.name}`
+                    }
+                    onPress={() =>
+                      isEditing ? remove(station.stationuuid) : play(station)
+                    }
+                  >
+                    {isEditing ? (
+                      <Svg width={16} height={16} viewBox="0 0 24 24">
+                        <Rect x={5} y={11} width={14} height={2.5} rx={1.25} fill={colors.muted} />
+                      </Svg>
+                    ) : (
+                      <Svg width={14} height={14} viewBox="0 0 24 24">
+                        <Polygon points="7,4 20,12 7,20" fill={colors.muted} />
+                      </Svg>
+                    )}
+                  </RowAction>
+                }
+              />
+            ))}
+          </View>
+        </ScrollView>
+      </AsyncBoundary>
+    </Screen>
   );
 }
