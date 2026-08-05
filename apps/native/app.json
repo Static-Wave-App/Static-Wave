@@ -13,7 +13,9 @@
         ]
       },
       "infoPlist": {
-        "UIBackgroundModes": ["audio"]
+        "UIBackgroundModes": [
+          "audio"
+        ]
       }
     },
     "android": {
@@ -70,7 +72,10 @@
               "name": "NowPlayingWidget",
               "displayName": "Now Playing",
               "description": "See what's playing and control playback",
-              "supportedFamilies": ["systemSmall", "systemMedium"]
+              "supportedFamilies": [
+                "systemSmall",
+                "systemMedium"
+              ]
             }
           ]
         }
@@ -108,6 +113,28 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "eas": {
+        "build": {
+          "experimental": {
+            "ios": {
+              "appExtensions": [
+                {
+                  "targetName": "ExpoWidgetsTarget",
+                  "bundleIdentifier": "com.codewithkin.staticwave.ExpoWidgetsTarget",
+                  "entitlements": {
+                    "com.apple.security.application-groups": [
+                      "group.com.codewithkin.staticwave"
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "projectId": "d47fa0b9-33da-4aa4-a426-0e4ab80d4930"
+      }
     }
   }
 }
