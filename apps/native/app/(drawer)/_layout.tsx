@@ -1,67 +1,37 @@
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { Drawer } from "expo-router/drawer";
 import { Redirect } from "expo-router";
-import { useThemeColor } from "heroui-native";
-import { Text } from "react-native";
+import { Drawer } from "expo-router/drawer";
 
+import { DrawerContent } from "@/components/drawer/drawer-content";
+import { useAppColors } from "@/components/ui/theme";
 import { useOnboarding } from "@/stores";
 
 function DrawerLayout() {
   const onboardingComplete = useOnboarding((s) => s.complete);
-  const themeColorForeground = useThemeColor("foreground");
-  const themeColorBackground = useThemeColor("background");
+  const { colors } = useAppColors();
 
   // Declarative guard: renders the redirect *instead of* the drawer, so there's
   // no frame where the main app is visible to a first-time user. Reading from
   // the store (not storage) means calling `finish()` releases this immediately.
+  //
+  // Do NOT pair this with an imperative `router.replace()` — the two race and
+  // cancel each other (handover §7.2).
   if (!onboardingComplete) {
     return <Redirect href="/(onboarding)/welcome" />;
   }
 
   return (
     <Drawer
+      drawerContent={(props) => <DrawerContent {...props} />}
       screenOptions={{
-        headerTintColor: themeColorForeground,
-        headerStyle: { backgroundColor: themeColorBackground },
-        headerTitleStyle: {
-          fontWeight: "600",
-          color: themeColorForeground,
-        },
-        drawerStyle: { backgroundColor: themeColorBackground },
+        // The Dashboard draws its own header (hamburger, wordmark, sleep timer
+        // button) and the tabs own theirs, so a navigation header would sit on
+        // top of both.
+        headerShown: false,
+        drawerStyle: { backgroundColor: colors.background, width: 300 },
       }}
     >
-      <Drawer.Screen
-        name="index"
-        options={{
-          headerTitle: "Home",
-          drawerLabel: ({ color, focused }) => (
-            <Text style={{ color: focused ? color : themeColorForeground }}>Home</Text>
-          ),
-          drawerIcon: ({ size, color, focused }) => (
-            <Ionicons
-              name="home-outline"
-              size={size}
-              color={focused ? color : themeColorForeground}
-            />
-          ),
-        }}
-      />
-      <Drawer.Screen
-        name="(tabs)"
-        options={{
-          headerTitle: "Tabs",
-          drawerLabel: ({ color, focused }) => (
-            <Text style={{ color: focused ? color : themeColorForeground }}>Tabs</Text>
-          ),
-          drawerIcon: ({ size, color, focused }) => (
-            <MaterialIcons
-              name="border-bottom"
-              size={size}
-              color={focused ? color : themeColorForeground}
-            />
-          ),
-        }}
-      />
+      <Drawer.Screen name="index" />
+      <Drawer.Screen name="(tabs)" />
     </Drawer>
   );
 }
