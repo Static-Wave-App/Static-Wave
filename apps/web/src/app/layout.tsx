@@ -1,23 +1,30 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { IBM_Plex_Mono, Outfit } from "next/font/google";
 
 import "../index.css";
-import Header from "@/components/header";
 import Providers from "@/components/providers";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+/*
+ * The same two families the native app embeds (see apps/native/lib/fonts.ts),
+ * pulled from Google Fonts here rather than bundled. Keeping them identical is
+ * the point — someone who taps through from the app store listing should land
+ * on a page that reads like the app they just saw.
+ */
+const outfit = Outfit({
+  variable: "--font-outfit",
   subsets: ["latin"],
+  weight: ["300", "400", "500", "600"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const plexMono = IBM_Plex_Mono({
+  variable: "--font-plex-mono",
   subsets: ["latin"],
+  weight: ["400", "500"],
 });
 
 export const metadata: Metadata = {
-  title: "static-wave",
-  description: "static-wave",
+  title: "Static Wave",
+  description: "Listen to any radio station in the world, free and without an account.",
 };
 
 export default function RootLayout({
@@ -26,14 +33,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <Providers>
-          <div className="grid grid-rows-[auto_1fr] h-svh">
-            <Header />
-            {children}
-          </div>
-        </Providers>
+    // `className="dark"` is fixed rather than driven by next-themes: this site
+    // is two legal pages, and a theme toggle on a privacy policy is noise.
+    <html lang="en" className="dark" suppressHydrationWarning>
+      <body className={`${outfit.variable} ${plexMono.variable} antialiased`}>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

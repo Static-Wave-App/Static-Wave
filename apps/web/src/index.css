@@ -1,1 +1,50 @@
 @import "@static-wave/ui/globals.css";
+
+/*
+ * Web-only brand tokens for the legal pages.
+ *
+ * The shared @static-wave/design theme drives the native app, where colours are
+ * consumed as JS values rather than CSS custom properties. These mirror the
+ * same palette as Tailwind utilities so /privacy and /terms can be styled with
+ * classNames — the hexes below are the ones in components/ui/theme.ts and the
+ * design file's dark row, not new inventions.
+ */
+@theme inline {
+  --font-display: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+
+  /* Surfaces — the design file's dark row. */
+  --color-ink: #08080a;
+  --color-elevated: #16161b;
+  --color-line: rgba(255, 255, 255, 0.08);
+  --color-fg: #fafafc;
+  --color-subtle: #9c9ca8;
+  --color-dim: #62626c;
+
+  /* Brand gradient stops, in the order they run in the wordmark. */
+  --color-brand-pink: #ff2fd6;
+  --color-brand-violet: #8b3dff;
+  --color-brand-blue: #2e7bff;
+  --color-brand-cyan: #22d3ee;
+
+  /* `brand` is the accent used for links and markers — violet is the one stop
+     that holds contrast against both #08080A and #FFFFFF. */
+  --color-brand: #8b3dff;
+  --color-brand-bright: #a56bff;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* The legal pages are always dark: they're read outside the app, and the
+   brand gradient is built for a near-black ground. */
+body {
+  background-color: var(--color-ink);
+  color: var(--color-fg);
+}
+
+::selection {
+  background-color: var(--color-brand-violet);
+  color: #fafafc;
+}
