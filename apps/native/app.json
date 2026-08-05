@@ -81,23 +81,6 @@
         }
       ],
       [
-        "react-native-android-widget",
-        {
-          "widgets": [
-            {
-              "name": "NowPlaying",
-              "label": "Now Playing",
-              "minWidth": "180dp",
-              "minHeight": "110dp",
-              "targetCellWidth": 3,
-              "targetCellHeight": 2,
-              "description": "See what's playing and control playback",
-              "updatePeriodMillis": 1800000
-            }
-          ]
-        }
-      ],
-      [
         "expo-build-properties",
         {
           "android": {
