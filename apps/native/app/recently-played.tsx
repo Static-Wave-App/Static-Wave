@@ -1,15 +1,16 @@
 import { useRouter } from "expo-router";
-import { Pressable, ScrollView, View } from "react-native";
+import { Alert, Pressable, ScrollView, View } from "react-native";
 
 import { AsyncBoundary, SectionHeader, StateBlock } from "@/components/ui/async-boundary";
 import { GLOW } from "@/components/ui/glow";
-import { ChevronLeftIcon, PlayIcon, TrashIcon } from "@/components/ui/icons";
+import { ChevronLeftIcon, TrashIcon } from "@/components/ui/icons";
+import { PlayPauseButton } from "@/components/ui/play-pause-button";
 import { Screen } from "@/components/ui/screen";
-import { RowAction, StationRow } from "@/components/ui/station-row";
+import { StationRow } from "@/components/ui/station-row";
 import { Text } from "@/components/ui/text";
 import { useAppColors } from "@/components/ui/theme";
 import { formatRelativeTime } from "@/lib/format";
-import { useAudioPlayer, useRecentlyPlayed } from "@/stores";
+import { useRecentlyPlayed } from "@/stores";
 
 /**
  * `/recently-played` — the Dashboard's "See all" target.
@@ -29,7 +30,19 @@ export default function RecentlyPlayedScreen() {
   const recentlyPlayed = useRecentlyPlayed((s) => s.recentlyPlayed);
   const clear = useRecentlyPlayed((s) => s.clear);
   const hydrated = useRecentlyPlayed((s) => s.hydrated);
-  const play = useAudioPlayer((s) => s.play);
+
+  // Clearing is irreversible and there's no undo, so it asks first. A single
+  // mis-tap otherwise wipes the user's entire listening history.
+  const confirmClear = () => {
+    Alert.alert(
+      "Clear history?",
+      "This removes every station from Recently played. It can't be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Clear", style: "destructive", onPress: () => clear() },
+      ],
+    );
+  };
 
   return (
     <Screen glow={GLOW.dashboard}>
@@ -63,7 +76,7 @@ export default function RecentlyPlayedScreen() {
 
         {recentlyPlayed.length > 0 ? (
           <Pressable
-            onPress={() => clear()}
+            onPress={confirmClear}
             accessibilityRole="button"
             accessibilityLabel="Clear history"
             style={({ pressed }) => ({
@@ -138,15 +151,7 @@ export default function RecentlyPlayedScreen() {
                   station={station}
                   size="sm"
                   onPress={() => router.push(`/station/${station.stationuuid}`)}
-                  trailing={
-                    <RowAction
-                      size={36}
-                      accessibilityLabel={`Play ${station.name}`}
-                      onPress={() => play(station)}
-                    >
-                      <PlayIcon size={14} color={colors.muted} />
-                    </RowAction>
-                  }
+                  trailing={<PlayPauseButton station={station} size={36} iconSize={14} />}
                 />
                 <Text
                   variant="mono-2xs"
