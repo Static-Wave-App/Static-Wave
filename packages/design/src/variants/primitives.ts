@@ -22,7 +22,9 @@ import { tv } from "tailwind-variants";
  * can't express a gradient as a class.
  */
 export const button = tv({
-  base: "flex-row items-center justify-center rounded-pill",
+  // 20px radius (rounded-lg), NOT a pill — verified against both design files,
+  // where every primary CTA is 58px tall with a 20px corner.
+  base: "flex-row items-center justify-center rounded-lg",
   variants: {
     variant: {
       gradient: "",
@@ -34,7 +36,8 @@ export const button = tv({
     size: {
       sm: "h-9 px-4 gap-1.5",
       md: "h-11 px-5 gap-2",
-      lg: "h-14 px-6 gap-2",
+      // 58px — the design's primary CTA height.
+      lg: "h-[58px] px-6 gap-2",
     },
     block: {
       true: "w-full",
