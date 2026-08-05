@@ -1,10 +1,11 @@
 import { LinearGradient } from "expo-linear-gradient";
 import type { ReactNode } from "react";
-import { Pressable, View, useColorScheme } from "react-native";
+import { Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Defs, Polyline, RadialGradient, Rect, Stop } from "react-native-svg";
 
 import { Text } from "@/components/ui/text";
+import { useAppTheme } from "@/contexts/app-theme-context";
 
 /**
  * Shared chrome for the six onboarding screens.
@@ -62,9 +63,14 @@ const LIGHT: OnboardingTheme = {
   ringInner: "rgba(139,61,255,0.10)",
 };
 
+/**
+ * Reads the app's own theme (uniwind, via AppThemeProvider) rather than the OS
+ * `useColorScheme()`. Those two diverge the moment the user overrides the theme
+ * in-app, which would leave onboarding light while the rest of the app is dark.
+ */
 export function useOnboardingTheme(): { theme: OnboardingTheme; isDark: boolean } {
-  const scheme = useColorScheme();
-  const isDark = scheme !== "light";
+  const { isLight } = useAppTheme();
+  const isDark = !isLight;
   return { theme: isDark ? DARK : LIGHT, isDark };
 }
 
