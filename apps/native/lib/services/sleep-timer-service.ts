@@ -42,7 +42,10 @@ function ensureChannel(): Promise<void> {
     const pending = Notifications.setNotificationChannelAsync(CHANNEL_ID, {
       name: "Sleep timer",
       importance: Notifications.AndroidImportance.DEFAULT,
-      sound: "default",
+      // No `sound` key. expo-notifications treats the value as the filename of
+      // a sound bundled via the config plugin's `sounds` array — including the
+      // string "default", which it then can't find and logs as an error. Omit
+      // it entirely and the channel uses the system default.
       lightColor: "#8B3DFF",
     })
       .then(() => {})
@@ -120,7 +123,7 @@ function scheduleExpiryNotification(endTime: number) {
       Notifications.scheduleNotificationAsync({
         content: {
           title: "Sleep timer finished",
-          body: "Open static wave to stop playback.",
+          body: "Open Static Wave to stop playback.",
         },
         trigger: {
           type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
