@@ -1,4 +1,5 @@
 import "@/global.css";
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { heroUITheme } from "@static-wave/design";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
@@ -36,11 +37,15 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 
 function StackLayout() {
   return (
-    <Stack screenOptions={{}}>
-      <Stack.Screen name="(drawer)" options={{ headerShown: false }} />
-      <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
-      <Stack.Screen name="station/[uuid]" options={{ title: "Station" }} />
-      <Stack.Screen name="player" options={{ title: "Now Playing", presentation: "modal" }} />
+    // Every screen draws its own chrome — Station Details runs a gradient hero
+    // under the status bar, and the Player has its own nav row — so no screen
+    // here wants a navigation header.
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="(drawer)" />
+      <Stack.Screen name="(onboarding)" />
+      <Stack.Screen name="station/[uuid]" />
+      <Stack.Screen name="recently-played" />
+      <Stack.Screen name="player" options={{ presentation: "modal" }} />
     </Stack>
   );
 }
@@ -92,9 +97,14 @@ export default function Layout() {
         <KeyboardProvider>
           <AppThemeProvider>
             <HeroUINativeProvider config={{ theme: heroUITheme }}>
-              <ErrorBoundary>
-                <StackLayout />
-              </ErrorBoundary>
+              {/* Bottom sheets present through here rather than inline, so a
+                  sheet opened from a tab screen isn't drawn under the floating
+                  tab bar (which is a sibling of the navigator). */}
+              <BottomSheetModalProvider>
+                <ErrorBoundary>
+                  <StackLayout />
+                </ErrorBoundary>
+              </BottomSheetModalProvider>
             </HeroUINativeProvider>
           </AppThemeProvider>
         </KeyboardProvider>
