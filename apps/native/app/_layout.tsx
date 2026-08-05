@@ -45,6 +45,7 @@ function StackLayout() {
       <Stack.Screen name="(onboarding)" />
       <Stack.Screen name="station/[uuid]" />
       <Stack.Screen name="recently-played" />
+      <Stack.Screen name="suggested" />
       <Stack.Screen name="player" options={{ presentation: "modal" }} />
     </Stack>
   );
