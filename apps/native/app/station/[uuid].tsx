@@ -1,26 +1,31 @@
-import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import type { ReactNode } from "react";
-import { Pressable, ScrollView, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AsyncBoundary, StateBlock } from "@/components/ui/async-boundary";
-import { ChevronLeftIcon, HeartIcon, PlayIcon, ShareIcon } from "@/components/ui/icons";
+import {
+  ChevronLeftIcon,
+  HeartIcon,
+  PauseIcon,
+  PlayIcon,
+  ShareIcon,
+} from "@/components/ui/icons";
 import { RadialOverlay } from "@/components/ui/radial-overlay";
+import { StationArtwork } from "@/components/ui/station-artwork";
 import { Eyebrow, Text } from "@/components/ui/text";
 import { useAppColors } from "@/components/ui/theme";
-import { useStation } from "@/hooks";
+import { useStation, useStationPlayback } from "@/hooks";
 import {
   formatCodec,
   formatVotes,
-  getStationAvatar,
   getStationStatus,
   getStationTags,
   getTrendLabel,
 } from "@/lib/format";
 import { shareStation } from "@/lib/share";
-import { useAudioPlayer, useFavorites } from "@/stores";
+import { useFavorites } from "@/stores";
 import type { Station } from "@static-wave/types";
 
 /**
@@ -123,13 +128,12 @@ function StationDetails({ station }: { station: Station }) {
   const insets = useSafeAreaInsets();
   const { colors, isDark } = useAppColors();
 
-  const play = useAudioPlayer((s) => s.play);
+  const playback = useStationPlayback(station);
   const toggleFavorite = useFavorites((s) => s.toggle);
   const isFavorite = useFavorites((s) =>
     s.favorites.some((f) => f.stationuuid === station.stationuuid),
   );
 
-  const avatar = getStationAvatar(station);
   const tags = getStationTags(station, 3);
   const status = getStationStatus(station);
   const trend = getTrendLabel(station);
@@ -219,54 +223,27 @@ function StationDetails({ station }: { station: Station }) {
 
         {/* Artwork 132×132 radius 34, `135deg #0A0A0C → #1E1E25`, 1px white border. */}
         <View style={{ alignItems: "center", paddingHorizontal: 28, paddingTop: 20 }}>
-          <View
-            style={{
-              width: 132,
-              height: 132,
-              borderRadius: 34,
-              overflow: "hidden",
-              borderWidth: 1,
-              borderColor: isDark ? "rgba(255,255,255,0.14)" : "rgba(0,0,0,0.10)",
-            }}
-          >
-            <LinearGradient
-              colors={isDark ? ["#0A0A0C", "#1E1E25"] : ["#0A0A0C", "#E4E4EA"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={{
-                width: "100%",
-                height: "100%",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              {avatar.uri ? (
-                <Image
-                  source={{ uri: avatar.uri }}
-                  contentFit="cover"
-                  transition={150}
-                  style={{ width: "100%", height: "100%" }}
-                />
-              ) : (
-                <Text
-                  weight="600"
-                  style={{
-                    fontSize: 40,
-                    letterSpacing: -1.6,
-                    color: "rgba(255,255,255,0.94)",
-                  }}
-                >
-                  {avatar.initials}
-                </Text>
-              )}
-            </LinearGradient>
-          </View>
+          <StationArtwork
+            station={station}
+            size={132}
+            radius={34}
+            colors={isDark ? ["#0A0A0C", "#1E1E25"] : ["#0A0A0C", "#E4E4EA"]}
+            locations={[0, 1]}
+            initialsSize={40}
+            align="center"
+            padding={0}
+            borderColor={isDark ? "rgba(255,255,255,0.14)" : "rgba(0,0,0,0.10)"}
+          />
 
           <Text
             weight="600"
             numberOfLines={2}
             style={{
               marginTop: 20,
+              // Extra breathing room under the name before the subtitle and
+              // tags; the design's 6px was too tight once names wrap to two
+              // lines, which is common.
+              marginBottom: 16,
               fontSize: 27,
               lineHeight: 31,
               letterSpacing: -0.81,
@@ -422,13 +399,14 @@ function StationDetails({ station }: { station: Station }) {
           style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
         />
 
+        {/* Reflects real playback state. It used to read "Play station"
+            unconditionally — including while that very station was audibly
+            playing — and re-tore-down the stream on every tap. */}
         <Pressable
-          onPress={() => {
-            play(station);
-            router.push("/player");
-          }}
+          onPress={playback.toggle}
           accessibilityRole="button"
-          accessibilityLabel={`Play ${station.name}`}
+          accessibilityState={{ selected: playback.isPlaying }}
+          accessibilityLabel={`${playback.label}: ${station.name}`}
           style={({ pressed }) => ({ flex: 1, opacity: pressed ? 0.9 : 1 })}
         >
           {/* 58px tall, radius 20 — NOT a pill. See §5 of the handover. */}
@@ -446,9 +424,15 @@ function StationDetails({ station }: { station: Station }) {
               gap: 10,
             }}
           >
-            <PlayIcon size={17} />
+            {playback.isLoading ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : playback.isPlaying ? (
+              <PauseIcon size={17} />
+            ) : (
+              <PlayIcon size={17} />
+            )}
             <Text weight="500" style={{ fontSize: 16, color: "rgba(255,255,255,0.96)" }}>
-              Play station
+              {playback.label}
             </Text>
           </LinearGradient>
         </Pressable>

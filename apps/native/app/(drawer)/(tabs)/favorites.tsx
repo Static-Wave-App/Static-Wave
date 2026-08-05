@@ -6,7 +6,9 @@ import Svg, { Polygon, Rect } from "react-native-svg";
 
 import { AsyncBoundary, SectionHeader, StateBlock } from "@/components/ui/async-boundary";
 import { GLOW } from "@/components/ui/glow";
+import { PlayPauseButton } from "@/components/ui/play-pause-button";
 import { Screen } from "@/components/ui/screen";
+import { ScreenBackButton } from "@/components/ui/screen-back-button";
 import { RowAction, StationRow } from "@/components/ui/station-row";
 import { Eyebrow, Text } from "@/components/ui/text";
 import { useAppColors } from "@/components/ui/theme";
@@ -149,13 +151,15 @@ export default function FavoritesScreen() {
 
   return (
     <Screen glow={GLOW.favorites}>
+      <ScreenBackButton />
+
       <View
         style={{
           flexDirection: "row",
           alignItems: "flex-end",
           justifyContent: "space-between",
           paddingHorizontal: 24,
-          paddingTop: 30,
+          paddingTop: 12,
         }}
       >
         <View>
@@ -232,25 +236,21 @@ export default function FavoritesScreen() {
                 size="sm"
                 onPress={() => router.push(`/station/${station.stationuuid}`)}
                 trailing={
-                  <RowAction
-                    size={36}
-                    accessibilityLabel={
-                      isEditing ? `Remove ${station.name}` : `Play ${station.name}`
-                    }
-                    onPress={() =>
-                      isEditing ? remove(station.stationuuid) : play(station)
-                    }
-                  >
-                    {isEditing ? (
+                  isEditing ? (
+                    <RowAction
+                      size={36}
+                      accessibilityLabel={`Remove ${station.name}`}
+                      onPress={() => remove(station.stationuuid)}
+                    >
                       <Svg width={16} height={16} viewBox="0 0 24 24">
                         <Rect x={5} y={11} width={14} height={2.5} rx={1.25} fill={colors.muted} />
                       </Svg>
-                    ) : (
-                      <Svg width={14} height={14} viewBox="0 0 24 24">
-                        <Polygon points="7,4 20,12 7,20" fill={colors.muted} />
-                      </Svg>
-                    )}
-                  </RowAction>
+                    </RowAction>
+                  ) : (
+                    // Pauses instead of restarting when this row is already the
+                    // playing station.
+                    <PlayPauseButton station={station} size={36} iconSize={14} />
+                  )
                 }
               />
             ))}
