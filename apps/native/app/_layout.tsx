@@ -13,6 +13,7 @@ import { ErrorBoundary } from "@/components/error-boundary";
 import { AppThemeProvider } from "@/contexts/app-theme-context";
 import { appFonts } from "@/lib/fonts";
 import { releaseAllPlayers } from "@/stores/audio-player";
+import { startDeepLinkHandler } from "@/lib/deep-links";
 import { startNetworkPlaybackService } from "@/lib/services/network-playback-service";
 import { startRecentlyPlayedTracker } from "@/lib/services/recently-played-tracker";
 import { startSleepTimerService } from "@/lib/services/sleep-timer-service";
@@ -69,6 +70,7 @@ export default function Layout() {
       startNetworkPlaybackService(),
       startRecentlyPlayedTracker(),
       startSleepTimerService(),
+      startDeepLinkHandler(),
     ];
 
     return () => {
