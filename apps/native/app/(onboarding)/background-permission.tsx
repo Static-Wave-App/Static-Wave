@@ -1,5 +1,4 @@
 import { LinearGradient } from "expo-linear-gradient";
-import { useRouter } from "expo-router";
 import { View } from "react-native";
 import Svg, { Path, Rect } from "react-native-svg";
 
@@ -15,16 +14,18 @@ import { Eyebrow, Text } from "@/components/ui/text";
 import { useAudioPlayer, useOnboarding } from "@/stores";
 
 export default function BackgroundPermissionScreen() {
-  const router = useRouter();
   const { theme } = useOnboardingTheme();
   const finish = useOnboarding((s) => s.finish);
   const currentStation = useAudioPlayer((s) => s.currentStation);
 
-  // Last screen — completing here releases the gate in (onboarding)/_layout.tsx
-  // and the drawer takes over.
+  // Last screen. Only flip the flag — the guard in (onboarding)/_layout.tsx
+  // renders <Redirect href="/(drawer)/(tabs)" /> the moment `complete` is true.
+  //
+  // Do NOT also call router.replace() here: the imperative navigation races the
+  // declarative redirect and the two cancel each other, which is why this
+  // button appeared to do nothing.
   const complete = () => {
     finish();
-    router.replace("/(drawer)");
   };
 
   // The mock preview uses whatever is actually playing from the AHA step.
