@@ -2,4 +2,9 @@
 @import "uniwind";
 @import "heroui-native/styles";
 
+/* Shared design tokens — the same file the web app imports. */
+@import "@static-wave/design/theme.css";
+
 @source './node_modules/heroui-native/lib';
+/* Scan the shared variant recipes so their classes survive purging. */
+@source '../../packages/design/src';
