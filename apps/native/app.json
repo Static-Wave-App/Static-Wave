@@ -7,6 +7,11 @@
     "version": "0.1.0",
     "ios": {
       "bundleIdentifier": "com.codewithkin.staticwave",
+      "entitlements": {
+        "com.apple.security.application-groups": [
+          "group.com.codewithkin.staticwave"
+        ]
+      },
       "infoPlist": {
         "UIBackgroundModes": ["audio"]
       }
@@ -24,7 +29,69 @@
     "name": "static wave",
     "slug": "static-wave",
     "plugins": [
-      "expo-font",
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/Outfit/Outfit-Light.ttf",
+            "./assets/fonts/Outfit/Outfit-Regular.ttf",
+            "./assets/fonts/Outfit/Outfit-Medium.ttf",
+            "./assets/fonts/Outfit/Outfit-SemiBold.ttf",
+            "./assets/fonts/Outfit/Outfit-Bold.ttf",
+            "./assets/fonts/IBMPlexMono/IBMPlexMono-Regular.ttf",
+            "./assets/fonts/IBMPlexMono/IBMPlexMono-Medium.ttf",
+            "./assets/fonts/IBMPlexMono/IBMPlexMono-SemiBold.ttf"
+          ]
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#FAFAFC",
+          "image": "./assets/images/splash-icon.png",
+          "dark": {
+            "image": "./assets/images/splash-icon-dark.png",
+            "backgroundColor": "#0A0A0C"
+          },
+          "imageWidth": 230
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#8B3DFF"
+        }
+      ],
+      [
+        "expo-widgets",
+        {
+          "widgets": [
+            {
+              "name": "NowPlayingWidget",
+              "displayName": "Now Playing",
+              "description": "See what's playing and control playback",
+              "supportedFamilies": ["systemSmall", "systemMedium"]
+            }
+          ]
+        }
+      ],
+      [
+        "react-native-android-widget",
+        {
+          "widgets": [
+            {
+              "name": "NowPlaying",
+              "label": "Now Playing",
+              "minWidth": "180dp",
+              "minHeight": "110dp",
+              "targetCellWidth": 3,
+              "targetCellHeight": 2,
+              "description": "See what's playing and control playback",
+              "updatePeriodMillis": 1800000
+            }
+          ]
+        }
+      ],
       [
         "expo-build-properties",
         {
@@ -41,15 +108,6 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    },
-    "expo-splash-screen": {
-      "backgroundColor": "#FFFFFF",
-      "image": "./assets/images/splash-icon.png",
-      "dark": {
-        "image": "./assets/images/splash-icon-dark.png",
-        "backgroundColor": "#000000"
-      },
-      "imageWidth": 230
     }
   }
 }
