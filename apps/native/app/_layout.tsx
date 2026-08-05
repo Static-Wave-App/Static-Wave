@@ -7,6 +7,7 @@ import { HeroUINativeProvider } from "heroui-native";
 import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { ErrorBoundary } from "@/components/error-boundary";
 import { AppThemeProvider } from "@/contexts/app-theme-context";
@@ -80,15 +81,18 @@ export default function Layout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <KeyboardProvider>
-        <AppThemeProvider>
-          <HeroUINativeProvider config={{ theme: heroUITheme }}>
-            <ErrorBoundary>
-              <StackLayout />
-            </ErrorBoundary>
-          </HeroUINativeProvider>
-        </AppThemeProvider>
-      </KeyboardProvider>
+      {/* Required by useSafeAreaInsets() in the onboarding chrome. */}
+      <SafeAreaProvider>
+        <KeyboardProvider>
+          <AppThemeProvider>
+            <HeroUINativeProvider config={{ theme: heroUITheme }}>
+              <ErrorBoundary>
+                <StackLayout />
+              </ErrorBoundary>
+            </HeroUINativeProvider>
+          </AppThemeProvider>
+        </KeyboardProvider>
+      </SafeAreaProvider>
     </GestureHandlerRootView>
   );
 }
