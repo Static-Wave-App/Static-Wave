@@ -1,12 +1,6 @@
 packages:
   - apps/*
   - packages/*
-# react-native-track-player 4.1.2 is the latest release and is built against
-# RN 0.68. On RN 0.86 `Arguments.fromBundle` requires a non-null Bundle, but
-# `Track.originalItem` is nullable, so MusicModule.kt fails to compile.
-# The patch makes those two call sites null-safe.
-patchedDependencies:
-  react-native-track-player@4.1.2: patches/react-native-track-player@4.1.2.patch
 allowBuilds:
   esbuild: true
   sharp: true

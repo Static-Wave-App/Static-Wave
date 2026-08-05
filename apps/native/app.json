@@ -7,11 +7,6 @@
     "version": "0.1.0",
     "ios": {
       "bundleIdentifier": "com.codewithkin.staticwave",
-      "entitlements": {
-        "com.apple.security.application-groups": [
-          "group.com.codewithkin.staticwave"
-        ]
-      },
       "infoPlist": {
         "UIBackgroundModes": [
           "audio"
@@ -65,22 +60,6 @@
         }
       ],
       [
-        "expo-widgets",
-        {
-          "widgets": [
-            {
-              "name": "NowPlayingWidget",
-              "displayName": "Now Playing",
-              "description": "See what's playing and control playback",
-              "supportedFamilies": [
-                "systemSmall",
-                "systemMedium"
-              ]
-            }
-          ]
-        }
-      ],
-      [
         "expo-build-properties",
         {
           "android": {
@@ -99,23 +78,6 @@
     },
     "extra": {
       "eas": {
-        "build": {
-          "experimental": {
-            "ios": {
-              "appExtensions": [
-                {
-                  "targetName": "ExpoWidgetsTarget",
-                  "bundleIdentifier": "com.codewithkin.staticwave.ExpoWidgetsTarget",
-                  "entitlements": {
-                    "com.apple.security.application-groups": [
-                      "group.com.codewithkin.staticwave"
-                    ]
-                  }
-                }
-              ]
-            }
-          }
-        },
         "projectId": "d47fa0b9-33da-4aa4-a426-0e4ab80d4930"
       }
     }

@@ -18,32 +18,29 @@ jest.mock("@react-native-async-storage/async-storage", () =>
   require("@react-native-async-storage/async-storage/jest/async-storage-mock"),
 );
 
-jest.mock("react-native-track-player", () => ({
-  __esModule: true,
-  default: {
-    setupPlayer: jest.fn().mockResolvedValue(undefined),
-    updateOptions: jest.fn().mockResolvedValue(undefined),
-    add: jest.fn().mockResolvedValue(undefined),
-    play: jest.fn().mockResolvedValue(undefined),
-    pause: jest.fn().mockResolvedValue(undefined),
-    stop: jest.fn().mockResolvedValue(undefined),
-    reset: jest.fn().mockResolvedValue(undefined),
-    addEventListener: jest.fn(),
-    getPlaybackState: jest.fn().mockResolvedValue({ state: "idle" }),
-  },
-  AppKilledPlaybackBehavior: { PausePlayback: "pause" },
-  Capability: { Play: "play", Pause: "pause", Stop: "stop" },
-  Event: {
-    PlaybackActiveTrackChanged: "playback-track-changed",
-    PlaybackError: "playback-error",
-    RemotePlay: "remote-play",
-    RemotePause: "remote-pause",
-    RemoteStop: "remote-stop",
-    RemoteNext: "remote-next",
-    RemotePrevious: "remote-previous",
-  },
-  State: { Playing: "playing", Paused: "paused" },
-  registerPlaybackService: jest.fn(),
+jest.mock("expo-audio", () => ({
+  setAudioModeAsync: jest.fn().mockResolvedValue(undefined),
+  createAudioPlayer: jest.fn(() => ({
+    play: jest.fn(),
+    pause: jest.fn(),
+    remove: jest.fn(),
+    replace: jest.fn(),
+    addListener: jest.fn(() => ({ remove: jest.fn() })),
+    setActiveForLockScreen: jest.fn(),
+    playing: false,
+    paused: true,
+    isLoaded: true,
+    volume: 1,
+  })),
+}));
+
+jest.mock("expo-asset", () => ({
+  Asset: { fromModule: jest.fn(() => ({ uri: "test://artwork.png" })) },
+}));
+
+jest.mock("expo-notifications", () => ({
+  scheduleNotificationAsync: jest.fn().mockResolvedValue("notification-id"),
+  cancelScheduledNotificationAsync: jest.fn().mockResolvedValue(undefined),
 }));
 
 jest.mock("expo-haptics", () => ({

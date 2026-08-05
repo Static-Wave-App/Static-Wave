@@ -1,17 +1,21 @@
+import { createAudioPlayer, setAudioModeAsync } from "expo-audio";
+import type { AudioPlayer } from "expo-audio";
 import { create } from "zustand";
-import TrackPlayer, {
-  AppKilledPlaybackBehavior,
-  Capability,
-  Event,
-  State,
-} from "react-native-track-player";
 
 import type { Station } from "@static-wave/types";
 
 import { api, getStreamUrl } from "@/lib/api";
+import { LOCK_SCREEN_ARTWORK } from "@/lib/lock-screen-artwork";
 
 const NETWORK_ERROR_PATTERN =
   /network|timeout|timed out|connection|unreachable|enotfound|econnrefused|offline/i;
+
+/**
+ * `setActiveForLockScreen` only takes effect once the audio session is active,
+ * which happens shortly after `play()`. Calling it immediately is a no-op, so
+ * it's deferred — see the expo-audio docs on lock screen controls.
+ */
+const LOCK_SCREEN_DELAY_MS = 400;
 
 type PlaybackFailure = {
   error: string;
@@ -19,9 +23,8 @@ type PlaybackFailure = {
 };
 
 /**
- * Normalizes anything track-player can throw or emit — an Error from `play()`,
- * a string, or a PlaybackError event payload — into a user-facing message plus
- * an `isOffline` flag so screens can distinguish a dead stream from a dead
+ * Normalizes anything the player can throw or emit into a user-facing message
+ * plus an `isOffline` flag, so screens can tell a dead stream from a dead
  * connection. See systems/error-handling.md.
  */
 export function classifyPlaybackError(reason: unknown): PlaybackFailure {
@@ -61,6 +64,29 @@ type AudioPlayerActions = {
   togglePlayback: () => Promise<void>;
 };
 
+/**
+ * The native player instance lives outside the store. expo-audio players are
+ * disposable native objects, not serializable state — keeping one in Zustand
+ * would make every subscriber re-render on an object identity change.
+ */
+let player: AudioPlayer | null = null;
+let lockScreenTimer: ReturnType<typeof setTimeout> | null = null;
+
+function disposePlayer() {
+  if (lockScreenTimer) {
+    clearTimeout(lockScreenTimer);
+    lockScreenTimer = null;
+  }
+  if (player) {
+    try {
+      player.remove();
+    } catch {
+      // Already released — nothing to do.
+    }
+    player = null;
+  }
+}
+
 export const useAudioPlayer = create<AudioPlayerState & AudioPlayerActions>(
   (set, get) => ({
     currentStation: null,
@@ -72,68 +98,68 @@ export const useAudioPlayer = create<AudioPlayerState & AudioPlayerActions>(
 
     setup: async () => {
       try {
-        await TrackPlayer.setupPlayer({
-          autoHandleInterruptions: true,
+        await setAudioModeAsync({
+          playsInSilentMode: true,
+          shouldPlayInBackground: true,
+          // `doNotMix` is REQUIRED for lock screen controls to bind to this
+          // player. Ducking other audio is not available alongside it.
+          interruptionMode: "doNotMix",
         });
 
-        await TrackPlayer.updateOptions({
-          android: {
-            appKilledPlaybackBehavior: AppKilledPlaybackBehavior.PausePlayback,
-          },
-          capabilities: [
-            Capability.Play,
-            Capability.Pause,
-            Capability.Stop,
-          ],
-          compactCapabilities: [
-            Capability.Play,
-            Capability.Pause,
-          ],
-        });
-
-        TrackPlayer.addEventListener(Event.PlaybackActiveTrackChanged, () => {
-          set({ isPlaying: true, isLoading: false });
-        });
-
-        TrackPlayer.addEventListener(Event.PlaybackError, (event) => {
-          set({
-            isPlaying: false,
-            isLoading: false,
-            ...classifyPlaybackError(event),
-          });
-        });
-
-        const playbackState = await TrackPlayer.getPlaybackState();
-        set({
-          isReady: true,
-          isPlaying: playbackState.state === State.Playing,
-        });
+        set({ isReady: true });
       } catch {
         set({ isReady: true, error: "Failed to setup audio player" });
       }
     },
 
     play: async (station: Station) => {
-      set({ isLoading: true, error: null, isOffline: false, currentStation: station });
+      set({
+        isLoading: true,
+        error: null,
+        isOffline: false,
+        currentStation: station,
+      });
 
       try {
-        await TrackPlayer.reset();
+        disposePlayer();
 
-        await TrackPlayer.add({
-          id: station.stationuuid,
-          url: getStreamUrl(station),
-          title: station.name,
-          artist: "static wave",
-          artwork: station.favicon || undefined,
-          isLiveStream: true,
+        player = createAudioPlayer({ uri: getStreamUrl(station) });
+
+        player.addListener("playbackStatusUpdate", (status) => {
+          // Live radio has no end, so a reported error is the only terminal
+          // state worth reacting to.
+          if (status.isLoaded === false && "error" in status && status.error) {
+            set({
+              isPlaying: false,
+              isLoading: false,
+              ...classifyPlaybackError(status.error),
+            });
+          }
         });
 
-        await TrackPlayer.play();
-
+        player.play();
         set({ isPlaying: true, isLoading: false });
+
+        // Deferred: the audio session isn't active until playback begins.
+        lockScreenTimer = setTimeout(() => {
+          try {
+            player?.setActiveForLockScreen(true, {
+              title: station.name,
+              artist: "static wave",
+              albumTitle: station.country || "Radio",
+              // Deliberately a bundled asset, not station.favicon. Remote
+              // artwork is a known iOS crash source (expo/expo#44496) and
+              // RadioBrowser favicons are frequently dead links.
+              artworkUrl: LOCK_SCREEN_ARTWORK,
+            });
+          } catch {
+            // Lock screen metadata is cosmetic — never break playback for it.
+          }
+        }, LOCK_SCREEN_DELAY_MS);
 
         api.sendStationClick(station.stationuuid).catch(() => {});
       } catch (e) {
+        disposePlayer();
         set({
           isLoading: false,
           isPlaying: false,
@@ -143,18 +169,26 @@ export const useAudioPlayer = create<AudioPlayerState & AudioPlayerActions>(
     },
 
     pause: async () => {
-      await TrackPlayer.pause();
+      player?.pause();
       set({ isPlaying: false });
     },
 
     resume: async () => {
-      await TrackPlayer.play();
+      const { currentStation } = get();
+
+      // The player is disposed on stop, so resuming after a stop has to
+      // reload the station rather than un-pause nothing.
+      if (!player && currentStation) {
+        await get().play(currentStation);
+        return;
+      }
+
+      player?.play();
       set({ isPlaying: true });
     },
 
     stop: async () => {
-      await TrackPlayer.stop();
-      await TrackPlayer.reset();
+      disposePlayer();
       set({
         currentStation: null,
         isPlaying: false,
@@ -165,8 +199,7 @@ export const useAudioPlayer = create<AudioPlayerState & AudioPlayerActions>(
     },
 
     togglePlayback: async () => {
-      const { isPlaying } = get();
-      if (isPlaying) {
+      if (get().isPlaying) {
         await get().pause();
       } else {
         await get().resume();
