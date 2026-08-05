@@ -19,6 +19,7 @@ A mobile app (Expo/React Native) for listening to any radio station via the Radi
 | `pnpm dev:native` | Start Expo dev server (native app) |
 | `pnpm dev:web` | Start Next.js dev on port 3001 |
 | `pnpm check-types` | Typecheck all packages |
+| `pnpm test` | Run tests (jest-expo, native app) |
 | `pnpm dev` | Start all apps (turbo) |
 
 ## Committing convention
@@ -37,7 +38,7 @@ A mobile app (Expo/React Native) for listening to any radio station via the Radi
   - Theme via `uniwind` with `useUniwind()` hook
 - **Path alias**: `@/` maps to `apps/native/` root
 - **Env**: `EXPO_PUBLIC_*` vars in `apps/native/.env`, validated by `@static-wave/env/native`
-- **Audio**: `expo-av` with custom UI layer (no `react-native-track-player`)
+- **Audio**: `react-native-track-player` (background audio, lock screen controls, remote events). Playback service registered in `apps/native/index.js`
 - **Data source**: RadioBrowser API (direct from device, no backend)
 
 ## Key constraints
