@@ -29,7 +29,7 @@
     "web": {
       "bundler": "metro"
     },
-    "name": "static wave",
+    "name": "Static Wave",
     "slug": "static-wave",
     "plugins": [
       [

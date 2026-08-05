@@ -32,7 +32,8 @@ export function Wordmark() {
     <View
       style={{ flexDirection: "row", alignItems: "center" }}
       accessibilityRole="header"
-      accessibilityLabel="static wave"
+      // Screen readers announce the product name, not the lowercase logotype.
+      accessibilityLabel="Static Wave"
     >
       <Text
         weight="500"

@@ -16,7 +16,7 @@ export async function shareStation(station: Station): Promise<boolean> {
   try {
     const result = await Share.share(
       { message, title: station.name },
-      { subject: `Listening to ${station.name} on static wave` },
+      { subject: `Listening to ${station.name} on Static Wave` },
     );
     return result.action === Share.sharedAction;
   } catch {

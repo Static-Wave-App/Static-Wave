@@ -152,7 +152,7 @@ export const SleepTimerSheet = forwardRef<SleepTimerSheetRef>(function SleepTime
           weight="300"
           style={{ marginTop: 22, fontSize: 12.5, lineHeight: 19, color: colors.muted }}
         >
-          Exact while static wave is open. If the app is in the background when the
+          Exact while Static Wave is open. If the app is in the background when the
           timer ends, you&apos;ll get a notification and playback stops as soon as you
           open the app again.
         </Text>

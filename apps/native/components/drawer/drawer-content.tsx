@@ -192,7 +192,7 @@ export function DrawerContent(props: DrawerContentComponentProps) {
 
       <View style={{ paddingHorizontal: 20, paddingTop: 24 }}>
         <Eyebrow variant="mono-2xs" style={{ color: colors.dim }}>
-          {`STATIC WAVE ${version}`}
+          {`Static Wave ${version}`.toUpperCase()}
         </Eyebrow>
       </View>
     </DrawerContentScrollView>
