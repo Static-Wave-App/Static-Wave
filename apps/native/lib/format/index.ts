@@ -1,4 +1,5 @@
 export { formatRelativeTime, formatCountdown } from "./relative-time";
+export { getGreeting } from "./greeting";
 export {
   AVATAR_COLORS,
   getAvatarColor,
