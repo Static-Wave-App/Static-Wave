@@ -1,9 +1,30 @@
+import type { AdvancedStationQuery } from "radio-browser-api";
+
 import type { Station } from "@static-wave/types";
 
 import { api, mapApiStations } from "./client";
 import { withRetry } from "./retry";
 
 const DEFAULT_LIMIT = 30;
+
+/**
+ * Drops keys whose value is `undefined` before the query reaches the client.
+ *
+ * This is not defensive tidying — it is required for search to work at all.
+ * `radio-browser-api`'s `createQueryParams` iterates every own key and emits
+ * `&{key}={encodeURIComponent(value)}`, with no check for `undefined`. So an
+ * unset filter is serialized as the literal string:
+ *
+ *   stations/search?name=jazz&tag=undefined&country=undefined&...
+ *
+ * RadioBrowser then filters for a tag named "undefined" and matches nothing,
+ * which is why every search returned an empty list regardless of the term.
+ */
+function compact(query: AdvancedStationQuery): AdvancedStationQuery {
+  return Object.fromEntries(
+    Object.entries(query).filter(([, value]) => value !== undefined),
+  ) as AdvancedStationQuery;
+}
 
 type PaginationOptions = {
   limit?: number;
@@ -47,18 +68,22 @@ export async function searchStations(
   const sort = SEARCH_SORTS[options.sort ?? "popularity"];
 
   const result = await withRetry(() =>
-    api.searchStations({
-      name: query,
-      tag: options.tag,
-      country: options.country,
-      language: options.language,
-      // The API takes bitrate bounds as strings.
-      bitrateMin: options.hdOnly ? String(HD_MIN_BITRATE) : undefined,
-      order: sort.order,
-      reverse: sort.reverse,
-      limit: options.limit ?? DEFAULT_LIMIT,
-      offset: options.offset ?? 0,
-    }),
+    api.searchStations(
+      compact({
+        // An empty `name` is still a filter as far as the serializer is
+        // concerned, so browse-by-filter drops it rather than sending name=.
+        name: query.trim() || undefined,
+        tag: options.tag,
+        country: options.country,
+        language: options.language,
+        // The API takes bitrate bounds as strings.
+        bitrateMin: options.hdOnly ? String(HD_MIN_BITRATE) : undefined,
+        order: sort.order,
+        reverse: sort.reverse,
+        limit: options.limit ?? DEFAULT_LIMIT,
+        offset: options.offset ?? 0,
+      }),
+    ),
   );
   return mapApiStations(result);
 }
