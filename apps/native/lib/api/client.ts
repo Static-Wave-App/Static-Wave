@@ -3,7 +3,18 @@ import { RadioBrowserApi } from "radio-browser-api";
 
 import type { Station } from "@static-wave/types";
 
-export const api = new RadioBrowserApi("static-wave/1.0.0");
+// `hideBroken` is set on the client so every search/browse/metadata call
+// filters out stations RadioBrowser has flagged as dead.
+export const api = new RadioBrowserApi("static-wave/1.0.0", true);
+
+/**
+ * RadioBrowser's `url` is frequently a playlist file (.pls/.m3u) rather than a
+ * stream. `urlResolved` is the actual audio endpoint and is what should be
+ * handed to the player. Falls back to `url` when the API hasn't resolved one.
+ */
+export function getStreamUrl(station: Station): string {
+  return station.urlResolved || station.url;
+}
 
 export function mapApiStation(s: ApiStation): Station {
   return {
