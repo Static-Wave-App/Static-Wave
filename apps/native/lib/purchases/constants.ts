@@ -1,17 +1,14 @@
 /**
- * RevenueCat Test Store key — public, safe to embed client-side (RevenueCat
- * API keys are not secrets, unlike a server key). Swap for a real goog_...
- * key before shipping to production; see plans/revenuecat.md.
+ * RevenueCat API key — public, safe to embed client-side (RevenueCat
+ * API keys are not secrets, unlike a server key).
  */
-export const REVENUECAT_API_KEY = "test_iyEzwoWITzpccStDtIQwUhCTqlr";
+export const REVENUECAT_API_KEY = "goog_VCeiIwdmTAcmmZCJnZxEVCsMFDb";
 
 /**
  * Must exactly match the entitlement identifier created in the RevenueCat
- * dashboard (Product catalog -> Entitlements). If nothing is configured
- * there yet, the paywall will still open but no purchase will ever satisfy
- * this check.
+ * dashboard (Product catalog -> Entitlements).
  */
-export const ENTITLEMENT_ID = "unlimited";
+export const ENTITLEMENT_ID = "entlae90dad7e9";
 
 /**
  * The Offering identifier the paywall (built in the RevenueCat dashboard) is
@@ -19,4 +16,4 @@ export const ENTITLEMENT_ID = "unlimited";
  * object, not this string — see hard-paywall.tsx, which fetches offerings
  * and looks this identifier up in `offerings.all`.
  */
-export const OFFERING_ID = "default";
+export const OFFERING_ID = "ofrng9837c0722d";

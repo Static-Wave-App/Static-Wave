@@ -8,6 +8,8 @@ dist
 build
 *.tsbuildinfo
 
+keystore/
+
 # Generated files
 apps/web/src/routeTree.gen.ts
 

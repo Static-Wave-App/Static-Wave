@@ -16,15 +16,10 @@ function configurePurchases() {
 }
 
 /**
- * TEST-ONLY hard paywall. Blocks the whole app behind RevenueCat's own
- * paywall UI until the `unlimited` entitlement is active — no custom paywall
- * screen, just RevenueCat's built-in presentPaywallIfNeeded() on a loop, which
- * is what makes this "hard": cancelling the sheet just reopens it, there's no
- * way through except purchasing or restoring.
- *
- * This is deliberately minimal for testing the purchase flow end to end —
- * see plans/revenuecat.md for the full version (proper store, restore entry
- * point outside the wall, error surfacing, production API key, etc.).
+ * Production paywall. Blocks the app behind RevenueCat's own paywall UI until
+ * the configured entitlement is active. On purchase or restore the children
+ * render; dismissing the sheet reopens it — the only path through is to
+ * purchase or restore.
  */
 export function HardPaywall({ children }: { children: ReactNode }) {
   // null = still checking, false = not entitled (paywall showing), true = entitled
@@ -44,11 +39,6 @@ export function HardPaywall({ children }: { children: ReactNode }) {
         if (cancelled) return;
 
         const offering = offerings.all[OFFERING_ID] ?? null;
-        if (!offering) {
-          console.warn(
-            `[HardPaywall] No offering found with identifier "${OFFERING_ID}" — falling back to the current offering. Check the RevenueCat dashboard.`,
-          );
-        }
         offeringRef.current = offering ?? offerings.current;
 
         setIsEntitled(typeof info.entitlements.active[ENTITLEMENT_ID] !== "undefined");
@@ -67,6 +57,8 @@ export function HardPaywall({ children }: { children: ReactNode }) {
     presenting.current = true;
 
     let stopped = false;
+    let errorCount = 0;
+    const MAX_ERROR_RETRIES = 5;
 
     async function presentUntilEntitled() {
       while (!stopped) {
@@ -81,21 +73,21 @@ export function HardPaywall({ children }: { children: ReactNode }) {
         }
 
         if (result === PAYWALL_RESULT.NOT_PRESENTED) {
-          // Native side already considers the entitlement active — resync and stop.
           setIsEntitled(true);
           break;
         }
 
         if (result === PAYWALL_RESULT.ERROR) {
-          // Most likely cause during testing: no entitlement/offering configured
-          // yet in the RevenueCat dashboard. Log it and back off briefly instead
-          // of hammering the native call in a tight loop.
-          console.warn("[HardPaywall] presentPaywallIfNeeded returned ERROR — check the RevenueCat dashboard config.");
+          errorCount++;
+          if (errorCount >= MAX_ERROR_RETRIES) {
+            setIsEntitled(false);
+            break;
+          }
           await new Promise((resolve) => setTimeout(resolve, 1500));
           continue;
         }
 
-        // CANCELLED — user backed out. Reopen immediately; this is the "hard" part.
+        // CANCELLED — user backed out. Reopen immediately.
       }
       presenting.current = false;
     }
