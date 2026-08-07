@@ -11,8 +11,10 @@ import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { ErrorBoundary } from "@/components/error-boundary";
+import { IncrementalUpdateWall } from "@/components/ui/incremental-update-wall";
 import { AppThemeProvider } from "@/contexts/app-theme-context";
 import { appFonts } from "@/lib/fonts";
+import { INCREMENTAL_CHANGE_PENDING } from "@/lib/incremental-update";
 import { releaseAllPlayers } from "@/stores/audio-player";
 import { startDeepLinkHandler } from "@/lib/deep-links";
 import { startNetworkPlaybackService } from "@/lib/services/network-playback-service";
@@ -64,6 +66,11 @@ export default function Layout() {
   }, [fontsLoaded, fontError]);
 
   useEffect(() => {
+    // Hard wall: don't hydrate stores, don't touch audio, don't start any
+    // background service behind it. Someone looking at the wall shouldn't
+    // have a player quietly buffering or a sleep timer running underneath.
+    if (INCREMENTAL_CHANGE_PENDING) return;
+
     useAudioPlayer.getState().setup();
     useFavorites.getState().hydrate();
     useRecentlyPlayed.getState().hydrate();
@@ -92,6 +99,19 @@ export default function Layout() {
   // Splash is still up at this point, so rendering nothing avoids a flash of
   // system-font text behind it.
   if (!fontsLoaded && !fontError) return null;
+
+  if (INCREMENTAL_CHANGE_PENDING) {
+    // Nothing else in this file renders below this point — no navigator, no
+    // theme/store providers, no screens. There is nothing underneath to
+    // reveal and nothing here to dismiss the wall with.
+    return (
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <SafeAreaProvider>
+          <IncrementalUpdateWall />
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
+    );
+  }
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
