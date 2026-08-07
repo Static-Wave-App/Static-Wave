@@ -435,6 +435,18 @@ function StationDetails({ station }: { station: Station }) {
               {playback.error} · Try again
             </Text>
           </Pressable>
+          {/* Raw reason, not the classified bucket above — shown small and
+              muted so it's there to screenshot/report without cluttering
+              the primary message everyone else reads. */}
+          {playback.detail ? (
+            <Text
+              variant="body-xs"
+              numberOfLines={2}
+              style={{ marginTop: 4, textAlign: "center", color: colors.dim }}
+            >
+              {playback.detail}
+            </Text>
+          ) : null}
         </View>
       ) : null}
 

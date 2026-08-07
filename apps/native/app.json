@@ -4,7 +4,7 @@
     "userInterfaceStyle": "automatic",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
-    "version": "1.3",
+    "version": "1.3.5",
     "ios": {
       "bundleIdentifier": "com.codewithkin.staticwave",
       "infoPlist": {

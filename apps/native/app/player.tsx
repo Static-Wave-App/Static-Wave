@@ -120,6 +120,7 @@ export default function PlayerScreen() {
   const isPlaying = useAudioPlayer((s) => s.isPlaying);
   const isLoading = useAudioPlayer((s) => s.isLoading);
   const error = useAudioPlayer((s) => s.error);
+  const detail = useAudioPlayer((s) => s.detail);
   const isOffline = useAudioPlayer((s) => s.isOffline);
   const togglePlayback = useAudioPlayer((s) => s.togglePlayback);
   const play = useAudioPlayer((s) => s.play);
@@ -273,6 +274,19 @@ export default function PlayerScreen() {
               {error} · Try again
             </Text>
           </Pressable>
+        ) : null}
+
+        {/* Raw reason, not the classified error above — small and muted so
+            it's there to screenshot/report without cluttering the primary
+            message everyone else reads. */}
+        {error && detail ? (
+          <Text
+            variant="body-xs"
+            numberOfLines={2}
+            style={{ marginTop: 4, textAlign: "center", color: colors.dim }}
+          >
+            {detail}
+          </Text>
         ) : null}
       </View>
 

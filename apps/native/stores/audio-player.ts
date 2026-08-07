@@ -22,8 +22,17 @@ const LOCK_SCREEN_DELAY_MS = 400;
  */
 const STALL_TIMEOUT_MS = 15000;
 
-type PlaybackFailure = { error: string; isOffline: boolean };
+type PlaybackFailure = { error: string; isOffline: boolean; detail: string | null };
 
+/**
+ * `error` is a deliberately generic, user-facing bucket — "No internet
+ * connection" / "Failed to play station" — collapsed from whatever the
+ * native player actually said. That collapsing is exactly what made every
+ * past failure indistinguishable: a dead stream, a codec ExoPlayer can't
+ * decode, a 403 from the broadcaster, and a genuine network drop all read
+ * as the same two sentences. `detail` keeps the raw native message instead
+ * of discarding it, so it can be shown/reported and actually diagnosed.
+ */
 export function classifyPlaybackError(reason: unknown): PlaybackFailure {
   let message = "";
   if (reason instanceof Error) message = reason.message;
@@ -35,6 +44,7 @@ export function classifyPlaybackError(reason: unknown): PlaybackFailure {
   return {
     error: isOffline ? "No internet connection" : "Failed to play station",
     isOffline,
+    detail: message.trim() || null,
   };
 }
 
@@ -131,6 +141,14 @@ type AudioPlayerState = {
   isPlaying: boolean;
   isLoading: boolean;
   error: string | null;
+  /**
+   * The raw reason behind `error` — an actual native player message, or a
+   * plain description of the stall watchdog firing with no error at all.
+   * Not shown as the primary error text (still too raw/inconsistent for
+   * that), but surfaced as a secondary line so a failure can be reported
+   * with the real cause attached instead of just "it didn't work."
+   */
+  detail: string | null;
   isOffline: boolean;
   isReady: boolean;
 };
@@ -150,6 +168,7 @@ export const useAudioPlayer = create<AudioPlayerState & AudioPlayerActions>(
     isPlaying: false,
     isLoading: false,
     error: null,
+    detail: null,
     isOffline: false,
     isReady: false,
 
@@ -177,6 +196,7 @@ export const useAudioPlayer = create<AudioPlayerState & AudioPlayerActions>(
       set({
         isLoading: true,
         error: null,
+        detail: null,
         isOffline: false,
         currentStation: station,
         isPlaying: false,
@@ -253,6 +273,13 @@ export const useAudioPlayer = create<AudioPlayerState & AudioPlayerActions>(
               isLoading: false,
               isPlaying: false,
               error: "Station isn't responding",
+              // Distinct from a caught error's detail on purpose — this
+              // path means the native player never threw anything at all,
+              // it just never reached playing:true. That's a different
+              // failure mode (connects-but-never-plays / silently
+              // unsupported format) from an explicit error, and worth
+              // being able to tell apart in whatever gets reported back.
+              detail: "No error thrown — stream never reached playing state within 15s",
               isOffline: false,
             });
           }
@@ -326,7 +353,7 @@ export const useAudioPlayer = create<AudioPlayerState & AudioPlayerActions>(
       // play() call reflects the real state once the native player
       // actually resumes. Setting it true unconditionally is the same
       // false-"playing" bug this store had for the initial play() path.
-      set({ isLoading: true, error: null, isOffline: false });
+      set({ isLoading: true, error: null, detail: null, isOffline: false });
     },
 
     stop: async () => {
@@ -338,6 +365,7 @@ export const useAudioPlayer = create<AudioPlayerState & AudioPlayerActions>(
         isPlaying: false,
         isLoading: false,
         error: null,
+        detail: null,
         isOffline: false,
       });
     },

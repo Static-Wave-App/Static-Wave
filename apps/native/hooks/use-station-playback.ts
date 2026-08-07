@@ -18,6 +18,8 @@ type StationPlayback = {
    * station, including ones that have never played at all.
    */
   error: string | null;
+  /** Raw reason behind `error` — see AudioPlayerState.detail. Same current-station guard as `error`. */
+  detail: string | null;
   /**
    * Plays this station, or pauses/resumes it when it's already the current one.
    */
@@ -41,6 +43,7 @@ export function useStationPlayback(station: Station | null): StationPlayback {
   const playing = useAudioPlayer((s) => s.isPlaying);
   const loading = useAudioPlayer((s) => s.isLoading);
   const storeError = useAudioPlayer((s) => s.error);
+  const storeDetail = useAudioPlayer((s) => s.detail);
 
   const play = useAudioPlayer((s) => s.play);
   const pause = useAudioPlayer((s) => s.pause);
@@ -50,6 +53,7 @@ export function useStationPlayback(station: Station | null): StationPlayback {
   const isPlaying = isCurrent && playing;
   const isLoading = isCurrent && loading;
   const error = isCurrent ? storeError : null;
+  const detail = isCurrent ? storeDetail : null;
 
   const toggle = useCallback(() => {
     if (!station) return;
@@ -71,5 +75,5 @@ export function useStationPlayback(station: Station | null): StationPlayback {
         ? "Resume"
         : "Play station";
 
-  return { isCurrent, isPlaying, isLoading, label, error, toggle };
+  return { isCurrent, isPlaying, isLoading, label, error, detail, toggle };
 }
