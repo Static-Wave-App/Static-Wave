@@ -13,6 +13,12 @@ type StationPlayback = {
   /** "Play station" / "Pause" / "Resume" / "Connecting…". */
   label: string;
   /**
+   * Set only when the failure belongs to THIS station — a stale error from
+   * whatever played before it shouldn't show up here. null on every other
+   * station, including ones that have never played at all.
+   */
+  error: string | null;
+  /**
    * Plays this station, or pauses/resumes it when it's already the current one.
    */
   toggle: () => void;
@@ -34,6 +40,7 @@ export function useStationPlayback(station: Station | null): StationPlayback {
   const currentUuid = useAudioPlayer((s) => s.currentStation?.stationuuid);
   const playing = useAudioPlayer((s) => s.isPlaying);
   const loading = useAudioPlayer((s) => s.isLoading);
+  const storeError = useAudioPlayer((s) => s.error);
 
   const play = useAudioPlayer((s) => s.play);
   const pause = useAudioPlayer((s) => s.pause);
@@ -42,6 +49,7 @@ export function useStationPlayback(station: Station | null): StationPlayback {
   const isCurrent = Boolean(station && currentUuid === station.stationuuid);
   const isPlaying = isCurrent && playing;
   const isLoading = isCurrent && loading;
+  const error = isCurrent ? storeError : null;
 
   const toggle = useCallback(() => {
     if (!station) return;
@@ -63,5 +71,5 @@ export function useStationPlayback(station: Station | null): StationPlayback {
         ? "Resume"
         : "Play station";
 
-  return { isCurrent, isPlaying, isLoading, label, toggle };
+  return { isCurrent, isPlaying, isLoading, label, error, toggle };
 }
