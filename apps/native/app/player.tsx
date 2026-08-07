@@ -120,6 +120,7 @@ export default function PlayerScreen() {
   const isPlaying = useAudioPlayer((s) => s.isPlaying);
   const isLoading = useAudioPlayer((s) => s.isLoading);
   const error = useAudioPlayer((s) => s.error);
+  const isOffline = useAudioPlayer((s) => s.isOffline);
   const togglePlayback = useAudioPlayer((s) => s.togglePlayback);
   const play = useAudioPlayer((s) => s.play);
 
@@ -224,7 +225,17 @@ export default function PlayerScreen() {
             />
           )}
           <Eyebrow variant="mono-2xs" style={{ letterSpacing: 1.52, color: colors.text }}>
-            {error ? "OFFLINE" : isLoading ? "CONNECTING" : "LIVE"}
+            {/* Was `error ? "OFFLINE" : ...` — labelled EVERY playback failure
+                "offline" regardless of cause, telling users their internet
+                was down when the actual problem was often a dead stream
+                connection with a perfectly fine network underneath. */}
+            {error
+              ? isOffline
+                ? "OFFLINE"
+                : "STREAM ERROR"
+              : isLoading
+                ? "CONNECTING"
+                : "LIVE"}
           </Eyebrow>
         </View>
 

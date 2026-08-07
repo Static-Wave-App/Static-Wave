@@ -412,6 +412,32 @@ function StationDetails({ station }: { station: Station }) {
         </View>
       </ScrollView>
 
+      {/* Was silent on failure: the button just reverted to "Resume" with
+          zero indication anything had gone wrong, indistinguishable from a
+          normal user-initiated pause. Same inline pattern the Player screen
+          already uses. */}
+      {playback.error ? (
+        <View
+          style={{
+            position: "absolute",
+            left: 24,
+            right: 24,
+            bottom: 108,
+            alignItems: "center",
+          }}
+        >
+          <Pressable
+            onPress={playback.toggle}
+            accessibilityRole="button"
+            style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+          >
+            <Text variant="body-md" style={{ color: "#8B3DFF" }}>
+              {playback.error} · Try again
+            </Text>
+          </Pressable>
+        </View>
+      ) : null}
+
       {/* Footer: `padding 22px 24px 40px` over a fade to the screen background. */}
       <View
         style={{
