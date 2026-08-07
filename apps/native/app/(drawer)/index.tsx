@@ -17,7 +17,7 @@ import { StationArtwork } from "@/components/ui/station-artwork";
 import { Eyebrow, Text } from "@/components/ui/text";
 import { useAppColors } from "@/components/ui/theme";
 import { Wordmark } from "@/components/ui/wordmark";
-import { useStationPlayback, useSuggestedStations } from "@/hooks";
+import { useStationPlayback, useStationSelect, useSuggestedStations } from "@/hooks";
 import { formatStationSubtitle, getGreeting, getStationAvatar } from "@/lib/format";
 import { useRecentlyPlayed, useSleepTimer } from "@/stores";
 import type { RecentStation, Station } from "@static-wave/types";
@@ -97,7 +97,7 @@ function HeaderButton({
 
 /** Height 194, radius 30, `135deg #FF2FD6, #8B3DFF 52%, #2E7BFF`. */
 function FeaturedCard({ station, width }: { station: Station; width: number }) {
-  const router = useRouter();
+  const selectStation = useStationSelect();
   const { colors } = useAppColors();
   const { isPlaying, isLoading, toggle } = useStationPlayback(station);
 
@@ -110,7 +110,7 @@ function FeaturedCard({ station, width }: { station: Station; width: number }) {
 
   return (
     <Pressable
-      onPress={() => router.push(`/station/${station.stationuuid}`)}
+      onPress={() => selectStation(station)}
       accessibilityRole="button"
       accessibilityLabel={`Featured: ${station.name}`}
       style={{ width }}
@@ -282,12 +282,12 @@ function CarouselDots({ count, active }: { count: number; active: number }) {
 
 /** Card width 132, tile 132×132 radius 24, play button 34 at right 10 / bottom 10. */
 function RecentCard({ station }: { station: RecentStation }) {
-  const router = useRouter();
+  const selectStation = useStationSelect();
   const { colors } = useAppColors();
 
   return (
     <Pressable
-      onPress={() => router.push(`/station/${station.stationuuid}`)}
+      onPress={() => selectStation(station)}
       accessibilityRole="button"
       accessibilityLabel={station.name}
       style={{ width: 132 }}
@@ -335,13 +335,13 @@ function RecentCard({ station }: { station: RecentStation }) {
  * card radius 26 with `padding 6px 14px`.
  */
 function SuggestedRow({ station, isLast }: { station: Station; isLast: boolean }) {
-  const router = useRouter();
+  const selectStation = useStationSelect();
   const { colors } = useAppColors();
 
   return (
     <>
       <Pressable
-        onPress={() => router.push(`/station/${station.stationuuid}`)}
+        onPress={() => selectStation(station)}
         accessibilityRole="button"
         accessibilityLabel={station.name}
         style={({ pressed }) => ({

@@ -4,7 +4,7 @@ import { create } from "zustand";
 
 import type { Station } from "@static-wave/types";
 
-import { api, getStreamUrl } from "@/lib/api";
+import { api, getPlayableStreamUrl } from "@/lib/api";
 import { LOCK_SCREEN_ARTWORK } from "@/lib/lock-screen-artwork";
 
 const NETWORK_ERROR_PATTERN =
@@ -168,11 +168,22 @@ export const useAudioPlayer = create<AudioPlayerState & AudioPlayerActions>(
       });
 
       try {
-        const next = createAudioPlayer({ uri: getStreamUrl(station) });
+        // Most stations resolve instantly (no network cost — see
+        // getPlayableStreamUrl). The subset published as a .pls/.m3u
+        // container pays for one fetch here so the player is only ever
+        // handed a real, directly playable stream URL.
+        const streamUrl = await getPlayableStreamUrl(station);
+
+        // A newer play() started while we were resolving the URL — bail
+        // before ever touching the native player.
+        if (token !== playToken) return;
+
+        const next = createAudioPlayer({ uri: streamUrl });
         livePlayers.add(next);
 
-        // A newer play() started while we were constructing — discard this one
-        // rather than letting two players coexist.
+        // Same check again: construction itself doesn't await, but belt and
+        // braces costs nothing and matches the pattern used everywhere else
+        // in this function.
         if (token !== playToken) {
           hardRelease(next);
           return;

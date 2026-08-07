@@ -1,7 +1,9 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import type { ReactNode } from "react";
+import { useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
+import type { LayoutChangeEvent } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AsyncBoundary, StateBlock } from "@/components/ui/async-boundary";
@@ -31,16 +33,31 @@ import type { Station } from "@static-wave/types";
 /**
  * Station Details — spec: systems/screen-specs.md §04.
  *
- * Structurally unlike every other screen: NO glow. Instead a 330px gradient
- * hero (`160deg #FF2FD6, #8B3DFF 45%, #2E7BFF 85%` under a cyan radial) with
+ * Structurally unlike every other screen: NO glow. Instead a gradient hero
+ * (`160deg #FF2FD6, #8B3DFF 45%, #2E7BFF 85%` under a cyan radial) with
  * `border-radius: 0 0 40px 40px`. The nav row, artwork and tags all sit on top
  * of it, so they use white-on-gradient colours rather than theme colours.
  *
  * This screen also does NOT use `<Screen>`: that component owns the safe-area
  * top padding, and here the hero has to run under the status bar.
+ *
+ * The hero's height is MEASURED, not a fixed 330px as the design's reference
+ * screenshot suggests. That fixed number only matched one specific device: the
+ * content stacked on top of it (nav row + artwork + station name, which wraps
+ * to two lines for plenty of real station names, + an optional subtitle) has a
+ * height that depends on the device's safe-area inset (varies by notch/Dynamic
+ * Island/status bar) and the user's font-scale setting. A user on r/droidapp
+ * showcase reported exactly the symptom a mismatch here produces — text
+ * sitting in the wrong place relative to the gradient compared to the posted
+ * screenshot — on "some screen aspect ratio or size". Measuring the header
+ * block via onLayout and sizing the gradient to match it makes the two always
+ * agree, regardless of device.
  */
 
-const HERO_HEIGHT = 330;
+const HERO_MIN_HEIGHT = 280;
+/** How far the gradient extends past the measured header content before the
+ *  tags/plain background begins — matches the visual gap in the design. */
+const HERO_BLEED = 28;
 
 /** Nav row buttons: 40×40, radius 14, `rgba(10,10,12,0.28)`. */
 function HeroButton({
@@ -128,6 +145,15 @@ function StationDetails({ station }: { station: Station }) {
   const insets = useSafeAreaInsets();
   const { colors, isDark } = useAppColors();
 
+  // Starts at a sane default so there's no flash of a collapsed hero before
+  // the first layout pass measures the real header content.
+  const [heroHeight, setHeroHeight] = useState(HERO_MIN_HEIGHT + 50);
+
+  const onHeaderLayout = (event: LayoutChangeEvent) => {
+    const measured = insets.top + event.nativeEvent.layout.height + HERO_BLEED;
+    setHeroHeight(Math.max(HERO_MIN_HEIGHT, measured));
+  };
+
   const playback = useStationPlayback(station);
   const toggleFavorite = useFavorites((s) => s.toggle);
   const isFavorite = useFavorites((s) =>
@@ -160,8 +186,10 @@ function StationDetails({ station }: { station: Station }) {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      {/* Hero: 330px, `border-radius 0 0 40px 40px`. Absolute, so the content
-          below scrolls over it exactly as it does in the design. */}
+      {/* Hero, `border-radius 0 0 40px 40px`. Absolute, so the content below
+          scrolls over it exactly as it does in the design. Height tracks
+          `heroHeight`, measured from the actual header content below rather
+          than assumed — see the note above `HERO_MIN_HEIGHT`. */}
       <View
         pointerEvents="none"
         style={{
@@ -169,7 +197,7 @@ function StationDetails({ station }: { station: Station }) {
           top: 0,
           left: 0,
           right: 0,
-          height: HERO_HEIGHT,
+          height: heroHeight,
           borderBottomLeftRadius: 40,
           borderBottomRightRadius: 40,
           overflow: "hidden",
@@ -192,76 +220,82 @@ function StationDetails({ station }: { station: Station }) {
         contentContainerStyle={{ paddingTop: insets.top, paddingBottom: 160 }}
         showsVerticalScrollIndicator={false}
       >
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-            paddingHorizontal: 20,
-            paddingTop: 22,
-          }}
-        >
-          <HeroButton onPress={() => router.back()} accessibilityLabel="Back">
-            <ChevronLeftIcon size={19} color="rgba(255,255,255,0.96)" />
-          </HeroButton>
-
-          <Text weight="400" style={{ fontSize: 13, color: "rgba(255,255,255,0.8)" }}>
-            Station
-          </Text>
-
-          <HeroButton
-            onPress={() => toggleFavorite(station)}
-            accessibilityLabel={isFavorite ? "Remove from favorites" : "Save to favorites"}
-          >
-            <HeartIcon
-              size={22}
-              color="rgba(255,255,255,0.96)"
-              filled={isFavorite}
-            />
-          </HeroButton>
-        </View>
-
-        {/* Artwork 132×132 radius 34, `135deg #0A0A0C → #1E1E25`, 1px white border. */}
-        <View style={{ alignItems: "center", paddingHorizontal: 28, paddingTop: 20 }}>
-          <StationArtwork
-            station={station}
-            size={132}
-            radius={34}
-            colors={isDark ? ["#0A0A0C", "#1E1E25"] : ["#0A0A0C", "#E4E4EA"]}
-            locations={[0, 1]}
-            initialsSize={40}
-            align="center"
-            padding={0}
-            borderColor={isDark ? "rgba(255,255,255,0.14)" : "rgba(0,0,0,0.10)"}
-          />
-
-          <Text
-            weight="600"
-            numberOfLines={2}
+        {/* Everything in this wrapper is what visually needs to sit on the
+            gradient — its measured height (see onHeaderLayout) is what
+            heroHeight tracks. Don't add anything here without expecting the
+            hero to grow to match; it's supposed to. */}
+        <View onLayout={onHeaderLayout}>
+          <View
             style={{
-              marginTop: 20,
-              // Extra breathing room under the name before the subtitle and
-              // tags; the design's 6px was too tight once names wrap to two
-              // lines, which is common.
-              marginBottom: 16,
-              fontSize: 27,
-              lineHeight: 31,
-              letterSpacing: -0.81,
-              textAlign: "center",
-              color: "rgba(255,255,255,0.98)",
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              paddingHorizontal: 20,
+              paddingTop: 22,
             }}
           >
-            {station.name}
-          </Text>
+            <HeroButton onPress={() => router.back()} accessibilityLabel="Back">
+              <ChevronLeftIcon size={19} color="rgba(255,255,255,0.96)" />
+            </HeroButton>
 
-          {subtitle ? (
-            <Text
-              weight="300"
-              style={{ marginTop: 6, fontSize: 14, color: "rgba(255,255,255,0.72)" }}
-            >
-              {subtitle}
+            <Text weight="400" style={{ fontSize: 13, color: "rgba(255,255,255,0.8)" }}>
+              Station
             </Text>
-          ) : null}
+
+            <HeroButton
+              onPress={() => toggleFavorite(station)}
+              accessibilityLabel={isFavorite ? "Remove from favorites" : "Save to favorites"}
+            >
+              <HeartIcon
+                size={22}
+                color="rgba(255,255,255,0.96)"
+                filled={isFavorite}
+              />
+            </HeroButton>
+          </View>
+
+          {/* Artwork 132×132 radius 34, `135deg #0A0A0C → #1E1E25`, 1px white border. */}
+          <View style={{ alignItems: "center", paddingHorizontal: 28, paddingTop: 20 }}>
+            <StationArtwork
+              station={station}
+              size={132}
+              radius={34}
+              colors={isDark ? ["#0A0A0C", "#1E1E25"] : ["#0A0A0C", "#E4E4EA"]}
+              locations={[0, 1]}
+              initialsSize={40}
+              align="center"
+              padding={0}
+              borderColor={isDark ? "rgba(255,255,255,0.14)" : "rgba(0,0,0,0.10)"}
+            />
+
+            <Text
+              weight="600"
+              numberOfLines={2}
+              style={{
+                marginTop: 20,
+                // Extra breathing room under the name before the subtitle and
+                // tags; the design's 6px was too tight once names wrap to two
+                // lines, which is common.
+                marginBottom: 16,
+                fontSize: 27,
+                lineHeight: 31,
+                letterSpacing: -0.81,
+                textAlign: "center",
+                color: "rgba(255,255,255,0.98)",
+              }}
+            >
+              {station.name}
+            </Text>
+
+            {subtitle ? (
+              <Text
+                weight="300"
+                style={{ marginTop: 6, fontSize: 14, color: "rgba(255,255,255,0.72)" }}
+              >
+                {subtitle}
+              </Text>
+            ) : null}
+          </View>
         </View>
 
         {/* Tags: height 32, radius 16, `padding 0 14px`, `rgba(255,255,255,0.14)`. */}

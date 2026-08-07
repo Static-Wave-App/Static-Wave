@@ -1,0 +1,41 @@
+# Read by EAS Build when it assembles the project archive to upload.
+#
+# EAS CLI detects this is a monorepo (apps/native sits under a shared
+# pnpm-workspace root) and archives from THIS directory, not from apps/native.
+# It does not reliably walk into and apply a workspace package's own nested
+# .gitignore the way `git` itself does — so apps/web/.gitignore excluding
+# `/.next/` does not stop that directory from being swept into an iOS or
+# Android build upload. It's a real cache that regrows every time `pnpm
+# dev:web` runs, and it has been the entire reason "eas build --platform ios"
+# uploads a ~140MB archive: apps/web/.next alone was 187MB uncompressed,
+# 93.5% of everything on disk in this repo, and none of it is native app code.
+#
+# Mirrors the root .gitignore, restated here because EAS reads this file
+# specifically rather than resolving gitignore precedence itself.
+node_modules
+**/node_modules
+.next
+**/.next
+.turbo
+**/.turbo
+dist
+**/dist
+build
+**/build
+*.tsbuildinfo
+coverage
+.cache
+tmp
+temp
+
+# apps/native's own build/cache directories. Already covered by
+# apps/native/.gitignore, restated here for the same reason as above.
+apps/native/android
+apps/native/ios
+apps/native/.expo
+apps/native/web-build
+
+# Design/planning docs — not needed by any build, no reason to upload them.
+/plans
+/systems
+/flows

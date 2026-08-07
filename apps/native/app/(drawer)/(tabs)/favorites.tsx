@@ -13,6 +13,7 @@ import { StationArtwork } from "@/components/ui/station-artwork";
 import { RowAction, StationRow } from "@/components/ui/station-row";
 import { Eyebrow, Text } from "@/components/ui/text";
 import { useAppColors } from "@/components/ui/theme";
+import { useStationSelect } from "@/hooks";
 import { formatCollectionSummary, formatStationSubtitle } from "@/lib/format";
 import { useAudioPlayer, useFavorites } from "@/stores";
 import type { FavoriteStation } from "@static-wave/types";
@@ -127,6 +128,7 @@ function OnAirCard({ station }: { station: FavoriteStation }) {
 export default function FavoritesScreen() {
   const router = useRouter();
   const { colors } = useAppColors();
+  const selectStation = useStationSelect();
 
   const favorites = useFavorites((s) => s.favorites);
   const hydrated = useFavorites((s) => s.hydrated);
@@ -226,7 +228,7 @@ export default function FavoritesScreen() {
                 key={station.stationuuid}
                 station={station}
                 size="sm"
-                onPress={() => router.push(`/station/${station.stationuuid}`)}
+                onPress={() => selectStation(station)}
                 trailing={
                   isEditing ? (
                     <RowAction

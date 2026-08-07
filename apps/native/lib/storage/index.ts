@@ -1,4 +1,11 @@
-export { getOnboarding, setOnboarding, getSleepTimer, setSleepTimer } from "./mmkv";
+export {
+  getOnboarding,
+  setOnboarding,
+  getSleepTimer,
+  setSleepTimer,
+  getSettings,
+  setSettings,
+} from "./mmkv";
 export {
   getFavorites,
   addFavorite,

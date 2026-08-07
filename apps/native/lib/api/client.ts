@@ -11,6 +11,12 @@ export const api = new RadioBrowserApi("static-wave/1.0.0", true);
  * RadioBrowser's `url` is frequently a playlist file (.pls/.m3u) rather than a
  * stream. `urlResolved` is the actual audio endpoint and is what should be
  * handed to the player. Falls back to `url` when the API hasn't resolved one.
+ *
+ * `urlResolved` only accounts for HTTP redirects, though — it can itself still
+ * be a `.pls`/`.m3u` container. Use `getPlayableStreamUrl` (lib/api/playlist.ts)
+ * when the result is about to be handed to a player; this synchronous version
+ * stays for callers that just need a best-guess URL (sharing, display) with no
+ * network round trip.
  */
 export function getStreamUrl(station: Station): string {
   return station.urlResolved || station.url;

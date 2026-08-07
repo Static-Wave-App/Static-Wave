@@ -5,13 +5,20 @@ import type { DrawerContentComponentProps } from "expo-router/drawer";
 import type { ReactNode } from "react";
 import { Pressable, View } from "react-native";
 
-import { ClockIcon, HomeIcon, MoonIcon, SearchIcon, SunIcon } from "@/components/ui/icons";
+import {
+  ClockIcon,
+  HomeIcon,
+  MoonIcon,
+  PlayIcon,
+  SearchIcon,
+  SunIcon,
+} from "@/components/ui/icons";
 import { Eyebrow, Text } from "@/components/ui/text";
 import { useAppColors } from "@/components/ui/theme";
 import { Wordmark } from "@/components/ui/wordmark";
 import { useAppTheme } from "@/contexts/app-theme-context";
 import { formatCollectionSummary } from "@/lib/format";
-import { useFavorites, useRecentlyPlayed } from "@/stores";
+import { useFavorites, useRecentlyPlayed, useSettings } from "@/stores";
 
 /**
  * Drawer contents.
@@ -65,6 +72,76 @@ function NavItem({
   );
 }
 
+/**
+ * A labelled row with a switch on the right — the theme toggle's markup,
+ * pulled out so "Instant play" doesn't duplicate the track/knob styling.
+ * Track 46×28, knob 22 — sized off the design's 26px pills so it sits at the
+ * same visual weight as the chips elsewhere.
+ */
+function ToggleRow({
+  label,
+  icon,
+  checked,
+  onPress,
+  accessibilityLabel,
+}: {
+  label: string;
+  icon: ReactNode;
+  checked: boolean;
+  onPress: () => void;
+  accessibilityLabel: string;
+}) {
+  const { colors } = useAppColors();
+
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="switch"
+      accessibilityState={{ checked }}
+      accessibilityLabel={accessibilityLabel}
+      style={({ pressed }) => ({
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        height: 50,
+        paddingHorizontal: 14,
+        borderRadius: 18,
+        opacity: pressed ? 0.7 : 1,
+      })}
+    >
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 14 }}>
+        {icon}
+        <Text weight="400" style={{ fontSize: 15, color: colors.text }}>
+          {label}
+        </Text>
+      </View>
+
+      <View
+        style={{
+          width: 46,
+          height: 28,
+          borderRadius: 14,
+          backgroundColor: checked ? "#8B3DFF" : colors.chipBg,
+          borderWidth: 1,
+          borderColor: checked ? "#8B3DFF" : colors.chipBorder,
+          justifyContent: "center",
+          paddingHorizontal: 2,
+          alignItems: checked ? "flex-end" : "flex-start",
+        }}
+      >
+        <View
+          style={{
+            width: 22,
+            height: 22,
+            borderRadius: 11,
+            backgroundColor: checked ? "#FAFAFC" : colors.muted,
+          }}
+        />
+      </View>
+    </Pressable>
+  );
+}
+
 export function DrawerContent(props: DrawerContentComponentProps) {
   const router = useRouter();
   const { colors, isDark } = useAppColors();
@@ -72,6 +149,9 @@ export function DrawerContent(props: DrawerContentComponentProps) {
 
   const favorites = useFavorites((s) => s.favorites);
   const recentCount = useRecentlyPlayed((s) => s.recentlyPlayed.length);
+
+  const instantPlay = useSettings((s) => s.instantPlay);
+  const toggleInstantPlay = useSettings((s) => s.toggleInstantPlay);
 
   // Which drawer screen is showing. Nested routes (the tabs group) report their
   // own name here, so this compares against the drawer's route list.
@@ -137,57 +217,54 @@ export function DrawerContent(props: DrawerContentComponentProps) {
       </View>
 
       <View style={{ paddingHorizontal: 12, paddingTop: 8 }}>
-        <Pressable
-          onPress={toggleTheme}
-          accessibilityRole="switch"
-          accessibilityState={{ checked: isDark }}
-          accessibilityLabel={isDark ? "Switch to light mode" : "Switch to dark mode"}
-          style={({ pressed }) => ({
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-            height: 50,
-            paddingHorizontal: 14,
-            borderRadius: 18,
-            opacity: pressed ? 0.7 : 1,
-          })}
-        >
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 14 }}>
-            {isDark ? (
+        <ToggleRow
+          label={isDark ? "Dark" : "Light"}
+          icon={
+            isDark ? (
               <MoonIcon size={20} color={colors.text} />
             ) : (
               <SunIcon size={20} color={colors.text} />
-            )}
-            <Text weight="400" style={{ fontSize: 15, color: colors.text }}>
-              {isDark ? "Dark" : "Light"}
-            </Text>
-          </View>
+            )
+          }
+          checked={isDark}
+          onPress={toggleTheme}
+          accessibilityLabel={isDark ? "Switch to light mode" : "Switch to dark mode"}
+        />
+      </View>
 
-          {/* Track 46×28, knob 22 — sized off the design's 26px pills so it
-              sits at the same visual weight as the chips elsewhere. */}
-          <View
-            style={{
-              width: 46,
-              height: 28,
-              borderRadius: 14,
-              backgroundColor: isDark ? "#8B3DFF" : colors.chipBg,
-              borderWidth: 1,
-              borderColor: isDark ? "#8B3DFF" : colors.chipBorder,
-              justifyContent: "center",
-              paddingHorizontal: 2,
-              alignItems: isDark ? "flex-end" : "flex-start",
-            }}
-          >
-            <View
-              style={{
-                width: 22,
-                height: 22,
-                borderRadius: 11,
-                backgroundColor: isDark ? "#FAFAFC" : colors.muted,
-              }}
-            />
-          </View>
-        </Pressable>
+      <View
+        style={{
+          height: 1,
+          backgroundColor: colors.hairline,
+          marginHorizontal: 20,
+          marginVertical: 18,
+        }}
+      />
+
+      <View style={{ paddingHorizontal: 20 }}>
+        <Eyebrow variant="mono-xs" style={{ fontSize: 10.5, color: colors.dim }}>
+          PLAYBACK
+        </Eyebrow>
+      </View>
+
+      <View style={{ paddingHorizontal: 12, paddingTop: 8 }}>
+        <ToggleRow
+          label="Instant play"
+          icon={<PlayIcon size={20} color={colors.text} />}
+          checked={instantPlay}
+          onPress={toggleInstantPlay}
+          accessibilityLabel={
+            instantPlay
+              ? "Turn off instant play"
+              : "Turn on instant play: tapping a station starts it immediately"
+          }
+        />
+        <Text
+          weight="300"
+          style={{ marginTop: 2, marginLeft: 14, fontSize: 12, color: colors.dim }}
+        >
+          Start playing the moment you tap a station
+        </Text>
       </View>
 
       <View style={{ paddingHorizontal: 20, paddingTop: 24 }}>

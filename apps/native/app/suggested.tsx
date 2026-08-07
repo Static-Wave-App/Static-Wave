@@ -14,7 +14,7 @@ import { Screen } from "@/components/ui/screen";
 import { StationRow } from "@/components/ui/station-row";
 import { Text } from "@/components/ui/text";
 import { useAppColors } from "@/components/ui/theme";
-import { useSuggestedFeed } from "@/hooks";
+import { useStationSelect, useSuggestedFeed } from "@/hooks";
 import { useOnboarding } from "@/stores";
 
 /**
@@ -28,6 +28,7 @@ import { useOnboarding } from "@/stores";
 export default function SuggestedScreen() {
   const router = useRouter();
   const { colors } = useAppColors();
+  const selectStation = useStationSelect();
 
   const genres = useOnboarding((s) => s.selectedGenres);
   const country = useOnboarding((s) => s.selectedCountry);
@@ -127,7 +128,7 @@ export default function SuggestedScreen() {
               <StationRow
                 station={item}
                 size="sm"
-                onPress={() => router.push(`/station/${item.stationuuid}`)}
+                onPress={() => selectStation(item)}
                 trailing={<PlayPauseButton station={item} size={36} iconSize={14} />}
               />
             </View>

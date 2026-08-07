@@ -24,6 +24,7 @@ import {
   useFavorites,
   useNetwork,
   useRecentlyPlayed,
+  useSettings,
   useSleepTimer,
 } from "@/stores";
 
@@ -67,6 +68,7 @@ export default function Layout() {
     useFavorites.getState().hydrate();
     useRecentlyPlayed.getState().hydrate();
     useSleepTimer.getState().hydrate();
+    useSettings.getState().hydrate();
     useNetwork.getState().check();
 
     // Service-layer bridges: these coordinate between stores without the

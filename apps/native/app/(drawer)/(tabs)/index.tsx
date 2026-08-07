@@ -24,7 +24,7 @@ import { ScreenBackButton } from "@/components/ui/screen-back-button";
 import { StationRow } from "@/components/ui/station-row";
 import { Eyebrow, Text } from "@/components/ui/text";
 import { useAppColors } from "@/components/ui/theme";
-import { useCatalogueSize, useStationSearch } from "@/hooks";
+import { useCatalogueSize, useStationSearch, useStationSelect } from "@/hooks";
 import type { SearchSort } from "@/lib/api";
 import { SEARCH_SORTS } from "@/lib/api";
 import { getFontFamily } from "@/lib/fonts";
@@ -164,6 +164,7 @@ function FavoriteToggle({ station }: { station: Station }) {
 export default function SearchScreen() {
   const router = useRouter();
   const { colors } = useAppColors();
+  const selectStation = useStationSelect();
 
   const [query, setQuery] = useState("");
   const [tag, setTag] = useState<string | null>(null);
@@ -423,7 +424,7 @@ export default function SearchScreen() {
               <StationRow
                 station={item}
                 size="md"
-                onPress={() => router.push(`/station/${item.stationuuid}`)}
+                onPress={() => selectStation(item)}
                 trailing={<FavoriteToggle station={item} />}
               />
             )}
@@ -458,7 +459,7 @@ export default function SearchScreen() {
                   key={station.stationuuid}
                   station={station}
                   size="md"
-                  onPress={() => router.push(`/station/${station.stationuuid}`)}
+                  onPress={() => selectStation(station)}
                   trailing={<PlayPauseButton station={station} size={36} iconSize={14} />}
                 />
               ))}

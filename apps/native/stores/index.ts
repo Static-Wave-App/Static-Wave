@@ -3,4 +3,5 @@ export { useFavorites, useIsFavorite } from "./favorites";
 export { useOnboarding } from "./onboarding";
 export { useRecentlyPlayed } from "./recently-played";
 export { useSleepTimer } from "./sleep-timer";
+export { useSettings } from "./settings";
 export { useNetwork, startNetworkListener } from "./network";

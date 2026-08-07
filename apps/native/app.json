@@ -4,17 +4,22 @@
     "userInterfaceStyle": "automatic",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
-    "version": "0.1.0",
+    "version": "0.3.0",
     "ios": {
       "bundleIdentifier": "com.codewithkin.staticwave",
       "infoPlist": {
         "UIBackgroundModes": [
           "audio"
-        ]
+        ],
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoadsInMedia": true
+        }
       }
     },
     "android": {
       "package": "com.codewithkin.staticwave",
+      "usesCleartextTraffic": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
@@ -23,7 +28,8 @@
         "android.permission.MODIFY_AUDIO_SETTINGS",
         "android.permission.FOREGROUND_SERVICE",
         "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK",
-        "android.permission.POST_NOTIFICATIONS"
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "web": {

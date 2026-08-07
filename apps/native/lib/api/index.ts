@@ -1,4 +1,5 @@
 export { api, getStreamUrl, mapApiStation, mapApiStations } from "./client";
+export { getPlayableStreamUrl, resolvePlaylistUrl } from "./playlist";
 export {
   searchStations,
   getStationsByTag,

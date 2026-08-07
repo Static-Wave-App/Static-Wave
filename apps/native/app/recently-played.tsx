@@ -9,6 +9,7 @@ import { Screen } from "@/components/ui/screen";
 import { StationRow } from "@/components/ui/station-row";
 import { Text } from "@/components/ui/text";
 import { useAppColors } from "@/components/ui/theme";
+import { useStationSelect } from "@/hooks";
 import { formatRelativeTime } from "@/lib/format";
 import { useRecentlyPlayed } from "@/stores";
 
@@ -26,6 +27,7 @@ import { useRecentlyPlayed } from "@/stores";
 export default function RecentlyPlayedScreen() {
   const router = useRouter();
   const { colors } = useAppColors();
+  const selectStation = useStationSelect();
 
   const recentlyPlayed = useRecentlyPlayed((s) => s.recentlyPlayed);
   const clear = useRecentlyPlayed((s) => s.clear);
@@ -150,7 +152,7 @@ export default function RecentlyPlayedScreen() {
                 <StationRow
                   station={station}
                   size="sm"
-                  onPress={() => router.push(`/station/${station.stationuuid}`)}
+                  onPress={() => selectStation(station)}
                   trailing={<PlayPauseButton station={station} size={36} iconSize={14} />}
                 />
                 <Text
