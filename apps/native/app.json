@@ -32,9 +32,6 @@
         "android.permission.RECORD_AUDIO"
       ]
     },
-    "web": {
-      "bundler": "metro"
-    },
     "name": "Static Wave",
     "slug": "static-wave",
     "plugins": [
@@ -82,8 +79,7 @@
             ]
           }
         }
-      ],
-      "expo-audio"
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
