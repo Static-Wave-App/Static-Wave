@@ -16,4 +16,4 @@ export const ENTITLEMENT_ID = "entlae90dad7e9";
  * object, not this string — see hard-paywall.tsx, which fetches offerings
  * and looks this identifier up in `offerings.all`.
  */
-export const OFFERING_ID = "ofrng9837c0722d";
+export const OFFERING_ID = "staticwave";
