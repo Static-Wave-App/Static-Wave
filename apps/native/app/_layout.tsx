@@ -11,7 +11,8 @@ import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { ErrorBoundary } from "@/components/error-boundary";
-import { HardPaywall } from "@/components/paywall/hard-paywall";
+// Paywall disabled — see git history to re-enable.
+// import { HardPaywall } from "@/components/paywall/hard-paywall";
 import { IncrementalUpdateWall } from "@/components/ui/incremental-update-wall";
 import { AppThemeProvider } from "@/contexts/app-theme-context";
 import { appFonts } from "@/lib/fonts";
@@ -126,9 +127,10 @@ export default function Layout() {
                   tab bar (which is a sibling of the navigator). */}
               <BottomSheetModalProvider>
                 <ErrorBoundary>
-                  <HardPaywall>
+                  {/* <HardPaywall>
                     <StackLayout />
-                  </HardPaywall>
+                  </HardPaywall> */}
+                  <StackLayout />
                 </ErrorBoundary>
               </BottomSheetModalProvider>
             </HeroUINativeProvider>
