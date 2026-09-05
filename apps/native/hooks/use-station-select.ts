@@ -3,6 +3,7 @@ import { useCallback } from "react";
 
 import type { Station } from "@static-wave/types";
 
+import { showInterstitial } from "@/lib/ads";
 import { useAudioPlayer, useSettings } from "@/stores";
 
 /**
@@ -25,7 +26,11 @@ export function useStationSelect() {
 
   return useCallback(
     (station: Station) => {
-      if (instantPlay) play(station);
+      if (instantPlay) {
+        // Same interstitial-before-play as the Play button: show it, then
+        // start the stream. A failed ad never blocks playback.
+        void showInterstitial().then(() => play(station));
+      }
       router.push(`/station/${station.stationuuid}`);
     },
     [instantPlay, play, router],

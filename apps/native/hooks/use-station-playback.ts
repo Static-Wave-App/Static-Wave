@@ -2,6 +2,7 @@ import { useCallback } from "react";
 
 import type { Station } from "@static-wave/types";
 
+import { showInterstitial } from "@/lib/ads";
 import { useAudioPlayer } from "@/stores";
 
 type StationPlayback = {
@@ -59,7 +60,10 @@ export function useStationPlayback(station: Station | null): StationPlayback {
     if (!station) return;
 
     if (!isCurrent) {
-      play(station);
+      // Interstitial before a new station starts. Never blocks playback: the
+      // ad resolves (dismissed / error / timeout) before play() runs, but a
+      // failed ad must not deny the stream.
+      void showInterstitial().then(() => play(station));
       return;
     }
 
