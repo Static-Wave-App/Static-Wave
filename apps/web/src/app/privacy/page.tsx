@@ -12,7 +12,7 @@ const CONTACT = "kinzinzombe07@gmail.com";
 
 export default function Privacy() {
   return (
-    <LegalPage title="Privacy Policy" effectiveDate="5 August 2026">
+    <LegalPage title="Privacy Policy" effectiveDate="5 September 2026">
       <Section title="The short version">
         <p>
           Static Wave has no accounts and no server storing your content. Your favourites,
@@ -22,7 +22,8 @@ export default function Privacy() {
         </p>
         <p>
           The rest of this page explains the exceptions in plain terms — the station directory
-          we query, the stations you stream from, and two anonymous app services.
+          we query, the stations you stream from, the ads shown by Google, and two anonymous
+          app services.
         </p>
       </Section>
 
@@ -61,7 +62,7 @@ export default function Privacy() {
 
       <Section title="What leaves your device">
         <p>
-          Static Wave is a radio player, so it necessarily talks to the wider internet. Four
+          Static Wave is a radio player, so it necessarily talks to the wider internet. Five
           things receive information. None of them receives an identity, because the app never
           creates one.
         </p>
@@ -122,14 +123,44 @@ export default function Privacy() {
           never see or store your card details — and this policy will be updated before that goes
           live.
         </p>
+
+        <p className="text-fg">Google AdMob (advertising)</p>
+        <p>
+          The free version of Static Wave is supported by advertising. Ads are served by Google
+          AdMob, an independent service with its own privacy practices. Before the first ad is
+          requested, we ask for your consent to personalised advertising. If you consent, Google
+          may use anonymous identifiers and technical details to select ads it thinks are relevant
+          to you. If you don&apos;t consent — or the choice can&apos;t be established — ads are
+          served without personalisation.
+        </p>
+        <p>
+          To serve an ad to your device, an ad request is sent to Google which contains the
+          minimum any ad network needs: your IP address, coarse device information such as make,
+          model, operating system and screen size, and advertising identifiers. Because the app
+          never creates an account, none of this is tied to a profile with us. Google&apos;s
+          handling of ad requests is governed by{" "}
+          <a
+            href="https://policies.google.com/privacy"
+            className="text-brand hover:text-brand-bright"
+            rel="noreferrer noopener"
+            target="_blank"
+          >
+            Google&apos;s privacy policy
+          </a>
+          .
+        </p>
+        <p>
+          We do not tell advertisers which stations you listen to, which ones you save, or
+          anything else about your listening.
+        </p>
       </Section>
 
       <Section title="What we never do">
         <List
           items={[
             "We don't require an account, email address, or phone number",
-            "We don't show ads or share data with advertisers",
             "We don't sell or rent personal information to anyone",
+            "We don't share your listening activity with advertisers",
             "We don't track you across other apps or websites",
             "We don't access your contacts, camera, photos, microphone, or location",
             "We don't record, store, or analyse the audio you listen to",

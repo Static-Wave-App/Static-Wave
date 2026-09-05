@@ -11,7 +11,7 @@ const CONTACT = "kinzinzombe07@gmail.com";
 
 export default function Terms() {
   return (
-    <LegalPage title="Terms of Service" effectiveDate="5 August 2026">
+    <LegalPage title="Terms of Service" effectiveDate="5 September 2026">
       <Section title="Agreement">
         <p>
           These terms apply when you download or use Static Wave (the &quot;app&quot;). If you
@@ -93,6 +93,29 @@ export default function Terms() {
           Because they live only on your device, you are solely responsible for them. If you lose
           your device, uninstall the app, or clear its data, that content is gone permanently and
           we cannot recover it for you.
+        </p>
+      </Section>
+
+      <Section title="Advertising">
+        <p>
+          Static Wave is currently free and supported by advertising. From time to time the app
+          may show you advertisements, served by third-party ad networks such as Google AdMob.
+          These ads may appear between your actions in the app — for example, before a new
+          station starts playing.
+        </p>
+        <p>
+          Before the first ad is shown we ask for your consent to personalised advertising, and
+          your choice is honoured. If you consent, ad networks may use technical details about
+          your device to choose ads they think are relevant. If you don&apos;t consent, you&apos;ll
+          still see ads — they just won&apos;t be personalised.
+        </p>
+        <p>
+          Ad networks are independent companies with their own terms and policies. The ads they
+          show are not endorsed by us, and you interact with them at your own discretion. See the{" "}
+          <a href="/privacy" className="text-brand hover:text-brand-bright">
+            Privacy Policy
+          </a>{" "}
+          for what we share with them (which is deliberately little).
         </p>
       </Section>
 
